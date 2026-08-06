@@ -38,6 +38,20 @@ DEBUG: bool = _env_bool("DEBUG", default=True)
 
 ALLOWED_HOSTS: list[str] = _env_list("ALLOWED_HOSTS", "localhost,127.0.0.1")
 
+# ---------------------------------------------------------------------------
+# 安全（security.md §5 / 规格 §17：HTTP 头与 Cookie 加固）
+# SecurityMiddleware 读取以下开关输出响应头；X-Frame-Options 另经
+# XFrameOptionsMiddleware 输出。Cookie 属性在 Set-Cookie 时强制落位。
+# ---------------------------------------------------------------------------
+
+SECURE_CONTENT_TYPE_NOSNIFF: bool = True
+SECURE_REFERRER_POLICY: str = "same-origin"
+X_FRAME_OPTIONS: str = "DENY"
+SESSION_COOKIE_HTTPONLY: bool = True
+SESSION_COOKIE_SAMESITE: str = "Lax"
+CSRF_COOKIE_HTTPONLY: bool = True
+CSRF_COOKIE_SAMESITE: str = "Lax"
+
 INSTALLED_APPS: list[str] = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -151,6 +165,10 @@ STATIC_ROOT: Path = BASE_DIR / "staticfiles"
 
 MEDIA_URL: str = "/media/"
 MEDIA_ROOT: Path = Path(os.environ.get("MEDIA_ROOT", str(BASE_DIR / "media")))
+
+# 备份（规格 §18、ADR-011）：输出目录与保留份数，均可经环境变量覆盖。
+BACKUP_DIR: Path = Path(os.environ.get("BACKUP_DIR", str(BASE_DIR / "backups")))
+BACKUP_RETENTION_COUNT: int = int(os.environ.get("BACKUP_RETENTION_COUNT", "30"))
 
 # 文档上传单文件大小上限（字节，默认 100MB），security.md §4 大文件限制。
 DOCUMENT_MAX_UPLOAD_SIZE: int = int(

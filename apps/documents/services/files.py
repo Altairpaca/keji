@@ -10,7 +10,7 @@ from collections.abc import Iterable
 from typing import BinaryIO
 
 from django.conf import settings
-from django.db import transaction
+from django.db import connection, transaction
 
 from apps.accounts.models import User
 from apps.customers.models import Customer
@@ -135,6 +135,18 @@ def _hash_stream(file: BinaryIO) -> str:
     return digest.hexdigest()
 
 
+def _lock_sha256(sha256: str) -> None:
+    """Postgres 事务级 advisory 锁（键由 sha256 前缀派生）。
+
+    并发同内容上传在此串行化：后到者在锁上等待，待先到者提交后重查即见
+    既有记录 → 抛 DuplicateDocumentError。锁随事务提交/回滚自动释放，且不
+    在数据表上设唯一约束，不破坏重复文件分组功能（T6.3）。
+    """
+    lock_key = int(sha256[:16], 16) & 0x7FFFFFFFFFFFFFFF  # 63 位，落进 bigint 范围
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT pg_advisory_xact_lock(%s)", [lock_key])
+
+
 def save_upload(
     *,
     file: BinaryIO,
@@ -148,9 +160,9 @@ def save_upload(
 ) -> Document:
     """校验并落盘上传文件，建 Document 记录（规格 §9 / REQ-DOC-001）。
 
-    流程：校验 → 流式 sha256 → 查重（同 sha256 且未删除 → 抛
-    ``DuplicateDocumentError``）→ 写存储 → 事务内建记录与 M2M 关联。
-    DB 写失败时清理已写文件，不留残留（security.md §4 临时文件清理）。
+    流程：校验 → 流式 sha256 → 快速查重（多数重复在此拦截）→ advisory 锁内
+    权威查重 + 落盘 + 建记录（并发同内容只成功一份）。DB 写失败时清理已写
+    文件，不留残留（security.md §4 临时文件清理）。
     """
     content_type, size = validate_upload(file)
     sha256 = _hash_stream(file)
@@ -161,10 +173,14 @@ def save_upload(
     original_name = (getattr(file, "name", "") or "未命名文件")[:255]
     key = new_storage_key()
     file.seek(0)
-    default_storage.save(key, file)
 
     try:
         with transaction.atomic():
+            _lock_sha256(sha256)
+            existing = Document.objects.filter(sha256=sha256).first()
+            if existing is not None:
+                raise DuplicateDocumentError(existing)
+            default_storage.save(key, file)
             doc: Document = Document.objects.create(
                 original_name=original_name,
                 storage_key=key,
@@ -183,6 +199,9 @@ def save_upload(
                 doc.albums.set(albums)
         ensure_thumbnails_for_document(doc)
         return doc
+    except DuplicateDocumentError:
+        default_storage.delete(key)
+        raise
     except BaseException:
         default_storage.delete(key)
         raise

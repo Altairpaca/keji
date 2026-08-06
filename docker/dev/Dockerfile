@@ -8,11 +8,13 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1
 
 # libpq 头文件供 psycopg 编译（binary wheel 一般已内置，保留以备源码构建）；
-# build-essential 供可能需要的 C 扩展编译。
+# build-essential 供可能需要的 C 扩展编译；
+# postgresql-client 提供 pg_dump（backup 命令，规格 §18、ADR-011）。
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         build-essential \
         libpq-dev \
+        postgresql-client \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
