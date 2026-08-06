@@ -103,6 +103,8 @@ DATABASES: dict[str, dict[str, object]] = {
         "USER": os.environ.get("DB_USER", "keji"),
         "PASSWORD": os.environ.get("DB_PASSWORD", "keji"),
         "CONN_MAX_AGE": 60,
+        # 测试库名可覆盖：并行跑测试时用 DB_TEST_NAME 隔离（如 test_keji_t42）
+        "TEST": {"NAME": os.environ.get("DB_TEST_NAME", "test_keji")},
     }
 }
 
