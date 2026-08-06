@@ -20,8 +20,12 @@ import pytest
 from django.conf import settings
 
 from apps.accounts.models import User
+from apps.activities.models import WorkEvent
+from apps.claims.models import ClaimCase
 from apps.customers.models import Customer, CustomerStatus, Tag
 from apps.customers.services import assign_tags, create_customer, soft_delete_customer
+from apps.policies.models import Policy
+from apps.tasks.models import Task
 
 pytestmark = pytest.mark.django_db
 
@@ -309,6 +313,81 @@ def test_detail_contains_placeholder_blocks(
 
     assert response.status_code == 200
     assert "将在后续版本显示" in _body(response)
+
+
+def test_detail_mobile_four_blocks(client: Any, manager: User, make_customer: MakeCustomer) -> None:
+    """手机端四区块（规格 §19）：是谁 / 在处理什么 / 上次发生什么 / 下一步做什么。"""
+    customer = make_customer("林小明")
+    client.force_login(manager)
+
+    body = _body(client.get(f"/customers/{customer.pk}/"))
+
+    for fragment in ("是谁", "在处理什么", "上次发生什么", "下一步做什么"):
+        assert fragment in body
+    # 编辑 / 删除按钮满足 44px 触控高度
+    assert "min-h-[44px]" in body
+
+
+def test_detail_mobile_empty_fields_collapsed(
+    client: Any, viewer: User, make_customer: MakeCustomer
+) -> None:
+    """手机端「是谁」空字段折叠：无值的字段不渲染，仅桌面信息卡保留标签行。"""
+    customer = make_customer(
+        "林小明",
+        phone="",
+        wechat_nickname="",
+        region="",
+        occupation="",
+        birth_date=date(1990, 1, 1),
+    )
+    client.force_login(viewer)
+
+    body = _body(client.get(f"/customers/{customer.pk}/"))
+
+    assert body.count('<dt class="label">手机号</dt>') == 1
+    assert body.count('<dt class="label">职业</dt>') == 1
+    assert body.count('<dt class="label">地区</dt>') == 1
+    assert "暂无跟进安排" in body
+
+
+def test_detail_mobile_shows_open_work_and_timeline(
+    client: Any, viewer: User, make_customer: MakeCustomer
+) -> None:
+    """手机端四区块内容：未完成待办 / 进行中保单 / 理赔中案件 / 最近时间线 / 下次跟进。"""
+    customer = make_customer("林小明", phone="13800138000", next_followup_date=date(2026, 8, 1))
+    Task.objects.create(customer=customer, title="确认保费缴纳", due_date=date(2026, 7, 20))
+    Task.objects.create(
+        customer=customer, title="已完成回访", due_date=date(2026, 6, 1), status="done"
+    )
+    Policy.objects.create(
+        insurer="平安人寿",
+        name="e生保医疗险",
+        policy_no="P-2026-0001",
+        policyholder=customer,
+        status="active",
+    )
+    ClaimCase.objects.create(customer=customer, name="门诊理赔", status="reported")
+    WorkEvent.objects.create(customer=customer, title="面谈家庭保障方案")
+    client.force_login(viewer)
+
+    body = _body(client.get(f"/customers/{customer.pk}/"))
+
+    for fragment in (
+        "确认保费缴纳",
+        "e生保医疗险",
+        "门诊理赔",
+        "面谈家庭保障方案",
+        "计划跟进日",
+        "2026-08-01",
+    ):
+        assert fragment in body
+    # 终态待办不进入「在处理什么」（时间线仍会展示，属正常）
+    in_progress_section = body.split("在处理什么", 1)[1].split("上次发生什么", 1)[0]
+    assert "已完成回访" not in in_progress_section
+    assert "确认保费缴纳" in in_progress_section
+    assert "暂无跟进安排" not in body
+    # 手机号有值：桌面信息卡 + 手机端「是谁」各渲染 1 处
+    assert body.count('<dt class="label">手机号</dt>') == 2
 
 
 # ---------------------------------------------------------------------------
