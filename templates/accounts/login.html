@@ -1,14 +1,33 @@
-<!doctype html>
-<html lang="zh-Hant">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>客迹 Keji — 登录</title>
-  </head>
-  <body>
-    <main>
-      <h1>客迹 Keji</h1>
-      <p>登录功能将在后续里程碑实现。</p>
-    </main>
-  </body>
-</html>
+{% extends "base.html" %}
+
+{% block title %}登录 — 客迹 Keji{% endblock %}
+
+{% block content %}
+  <div class="flex min-h-screen items-center justify-center px-4">
+    <div class="card w-full max-w-sm">
+      <div class="mb-6 text-center">
+        <h1 class="text-2xl font-semibold tracking-tight text-slate-900">客迹 Keji</h1>
+        <p class="mt-1 text-body-sm text-slate-500">客户工作档案系统</p>
+      </div>
+
+      {# 登录表单占位：完整认证流程由后续里程碑实现（T3.2） #}
+      <form method="post" action="{% url 'accounts:login' %}" class="space-y-4">
+        <div>
+          <label for="id_username" class="label">账号</label>
+          <input type="text" id="id_username" name="username" autocomplete="username"
+                 class="input" placeholder="请输入账号">
+        </div>
+        <div>
+          <label for="id_password" class="label">密码</label>
+          <input type="password" id="id_password" name="password" autocomplete="current-password"
+                 class="input" placeholder="请输入密码">
+        </div>
+        <button type="submit" class="btn-primary w-full">登 录</button>
+      </form>
+
+      <p class="mt-6 text-center text-body-sm text-slate-400">
+        登录功能将在后续里程碑实现
+      </p>
+    </div>
+  </div>
+{% endblock %}
