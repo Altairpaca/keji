@@ -5,14 +5,14 @@
 
 {% block content %}
   {% has_perm "can_manage_customers" as can_manage %}
-  <div class="mb-4 flex items-center justify-between gap-3">
+    <div class="mb-4 flex items-center justify-between gap-3">
     <h1 class="text-xl font-semibold tracking-tight text-slate-900">缴费提醒</h1>
-    <span class="text-body-sm text-slate-500">共 {{ rows|length }} 份保单有待缴批次</span>
+    <span class="text-body-sm text-slate-500">共 {{ page_obj.paginator.count }} 份保单有待缴批次</span>
   </div>
 
-  {% if rows %}
+  {% if page_obj.object_list %}
     <div class="space-y-3">
-      {% for row in rows %}
+      {% for row in page_obj.object_list %}
         <div class="card flex items-center justify-between gap-4 p-4" data-testid="reminder-card">
           <div class="min-w-0">
             <h2 class="truncate text-body font-semibold text-slate-900">
@@ -50,6 +50,7 @@
         </div>
       {% endfor %}
     </div>
+    {% include "components/pagination.html" with page_obj=page_obj %}
   {% else %}
     {% include "components/empty_state.html" with icon="bell" title="暂无待缴批次" description="当前没有需要缴费提醒的保单。" %}
   {% endif %}

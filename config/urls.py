@@ -15,10 +15,12 @@ from django.contrib import admin
 from django.urls import include, path
 
 from apps.activities import views as activities_views
+from apps.core.views import healthz as healthz_views
 from apps.core.views import pwa as pwa_views
 
 urlpatterns = [
     path("", include("apps.dashboard.urls")),
+    path("healthz/", healthz_views.healthz, name="healthz"),
     path(f"{settings.ADMIN_URL}/", admin.site.urls),
     path("accounts/", include("apps.accounts.urls")),
     path("activities/", include("apps.activities.urls")),

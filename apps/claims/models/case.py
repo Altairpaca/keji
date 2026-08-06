@@ -74,6 +74,7 @@ class ClaimCase(TimeStampedModel, UUIDModel, SoftDeleteModel):
         max_length=30,
         choices=CLAIM_STATUS_CHOICES,
         default="consultation",
+        db_index=True,
         verbose_name="状态",
     )
     estimated_amount = models.DecimalField(

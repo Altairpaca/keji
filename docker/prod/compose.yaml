@@ -1,0 +1,114 @@
+# ===========================================================================
+# 客迹 Keji — 生产 Docker Compose（规格 §23）
+#
+# 用法：
+#   1. 复制模板：cp docker/prod/.env.production.example .env.production
+#      并填写 SECRET_KEY（生成：python -c "import secrets; print(secrets.token_urlsafe(64))"）
+#      与强 DB 口令 POSTGRES_PASSWORD（禁止 keji/keji）。
+#   2. 构建启动：docker compose --env-file .env.production -f docker/prod/compose.yaml up -d --build
+#   3. 创建管理员：docker compose -f docker/prod/compose.yaml exec web \
+#          env DJANGO_SUPERUSER_PASSWORD=... python manage.py createsuperuser --noinput ...
+#   4. 停止（保留卷）：docker compose -f docker/prod/compose.yaml down
+#
+# 安全要点：
+#   - 对外只暴露 nginx 的 127.0.0.1:18080（默认仅本机可达，Tailscale 等内网方案自行接入）。
+#   - web 不映射任何端口，仅内部网络访问。
+#   - DB 口令经 ${POSTGRES_PASSWORD:?...} 强制提供，缺失即拒绝启动。
+#   - 全部服务以非 root 运行（web=UID 1001，postgres/nginx 镜像自带降权）。
+#   - 真实 .env.production 已在 .gitignore 中，永不入库。
+#
+# 项目名：compose.yaml 位于 docker/prod/，默认 project name 为 prod，
+# 与 dev（docker/dev）完全隔离；容器名显式加 keji-prod- 前缀防冲突。
+# ===========================================================================
+
+name: prod
+
+services:
+  db:
+    image: postgres:17
+    container_name: keji-prod-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-keji}
+      POSTGRES_USER: ${POSTGRES_USER:-keji}
+      # 生产强制：口令必须由环境提供（--env-file .env.production），缺失即报错。
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?生产环境必须设置 POSTGRES_PASSWORD（参考 .env.production.example）}
+    volumes:
+      - prod-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  web:
+    build:
+      context: ../..
+      dockerfile: docker/prod/Dockerfile
+    image: keji-prod-web
+    container_name: keji-prod-web
+    restart: unless-stopped
+    env_file:
+      - path: ../../.env.production
+        required: true
+    environment:
+      DB_HOST: db
+      DB_PORT: "5432"
+    volumes:
+      - prod-media:/app/media
+      - prod-static:/app/staticfiles
+      - prod-backups:/app/backups
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      # 探测本容器 gunicorn 的 /healthz/；python 内置 urllib，无需额外依赖。
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; assert urllib.request.urlopen('http://127.0.0.1:8000/healthz/', timeout=3).status == 200",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
+
+  nginx:
+    build:
+      context: .
+      dockerfile: nginx.Dockerfile
+    image: keji-prod-nginx
+    container_name: keji-prod-nginx
+    restart: unless-stopped
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - prod-static:/usr/share/nginx/html/static:ro
+      - prod-media:/usr/share/nginx/html/media:ro
+    ports:
+      # 默认仅绑本机回环（8080 常被其他服务占用，用 18080 避免冲突）；
+      # 如需局域网/公网访问请显式放开并前置 TLS。
+      - "127.0.0.1:18080:80"
+    depends_on:
+      web:
+        condition: service_healthy
+    healthcheck:
+      # busybox wget 会读 http_proxy（宿主机 daemon 注入），但忽略 NO_PROXY 导致挂起；
+      # 用 env -u 剔除代理变量后直连本机 80。
+      test:
+        [
+          "CMD-SHELL",
+          "env -u http_proxy -u HTTP_PROXY -u https_proxy -u HTTPS_PROXY wget -q -O /dev/null http://127.0.0.1/healthz/ || exit 1",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 10s
+
+volumes:
+  prod-db-data:
+  prod-media:
+  prod-static:
+  prod-backups:

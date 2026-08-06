@@ -18,6 +18,7 @@ PUBLIC_PATHS: set[str] = {
     "/sw.js",
     "/manifest.json",
     "/offline/",
+    "/healthz/",
 }
 
 Route = tuple[str, URLPattern]
