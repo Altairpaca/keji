@@ -128,7 +128,7 @@
         <div class="rounded-lg border border-slate-200 p-3">
           <p class="label">投保人</p>
           <a href="{% url 'customers:customer_detail' pk=policy.policyholder.pk %}"
-             class="mt-1 block font-medium text-brand-700 hover:text-brand-800">
+             class="mt-1 flex min-h-touch-min items-center font-medium text-brand-700 hover:text-brand-800">
             {{ policy.policyholder.name }}
           </a>
         </div>
@@ -136,7 +136,7 @@
           <p class="label">被保险人</p>
           {% if policy.insured %}
             <a href="{% url 'customers:customer_detail' pk=policy.insured.pk %}"
-               class="mt-1 block font-medium text-brand-700 hover:text-brand-800">
+               class="mt-1 flex min-h-touch-min items-center font-medium text-brand-700 hover:text-brand-800">
               {{ policy.insured.name }}
             </a>
           {% else %}

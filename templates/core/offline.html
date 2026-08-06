@@ -1,0 +1,36 @@
+{% load static %}<!doctype html>
+<html lang="zh-Hans">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#1d4ed8">
+    <title>已离线 — 客迹</title>
+    <link rel="stylesheet" href="{% static 'css/tailwind.css' %}">
+  </head>
+  <body class="min-h-screen bg-slate-50 text-slate-900 antialiased">
+    <div class="flex min-h-screen items-center justify-center px-4">
+      <div class="w-full max-w-sm rounded-card bg-white p-8 text-center shadow-card ring-1 ring-slate-200/60">
+        <span class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-brand-50 text-brand-700 ring-1 ring-inset ring-brand-200">
+          <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+            <line x1="12" x2="12" y1="9" y2="13"></line>
+            <line x1="12" x2="12.01" y1="17" y2="17"></line>
+          </svg>
+        </span>
+        <h1 class="mt-4 text-body-lg font-semibold text-slate-900">当前已离线</h1>
+        <p class="mt-2 text-body-sm leading-relaxed text-slate-500">
+          网络连接不可用。已缓存的应用壳仍可浏览，编辑与保存操作需恢复网络后进行。
+        </p>
+        <div class="mt-6 flex flex-col gap-2">
+          <button type="button" onclick="location.reload()"
+                  class="rounded-lg bg-brand-600 px-4 py-2 text-body-sm font-medium text-white transition-colors hover:bg-brand-700">
+            重试
+          </button>
+          <a href="/" class="rounded-lg px-4 py-2 text-body-sm font-medium text-brand-700 transition-colors hover:bg-brand-50">
+            返回首页
+          </a>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

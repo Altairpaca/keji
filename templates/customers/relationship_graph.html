@@ -14,7 +14,7 @@
     <div class="flex flex-wrap items-center justify-between gap-3">
       <div class="min-w-0">
         <a href="{% url 'customers:customer_detail' pk=customer.pk %}"
-           class="text-body-sm font-medium text-brand-700 hover:text-brand-800">← 返回 {{ customer.name }}</a>
+           class="inline-flex min-h-touch-min items-center text-body-sm font-medium text-brand-700 hover:text-brand-800">← 返回 {{ customer.name }}</a>
         <h1 class="mt-1 truncate text-xl font-semibold tracking-tight text-slate-900">{{ graph_title }}</h1>
       </div>
       <div class="flex shrink-0 items-center gap-2">
