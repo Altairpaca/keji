@@ -1,0 +1,71 @@
+{% load perm_tags %}
+{% comment %}
+材料行：名称 / 必需徽标 / 状态徽标 / 关联文件 / 状态流转下拉（仅合法目标）。
+用法：{% include "claims/_material_row.html" with material=material status_form=form %}
+参数：material — ClaimMaterial 实例；status_form — ChangeMaterialStatusForm（该材料）
+{% endcomment %}
+<tr class="border-t border-slate-100" data-testid="material-row">
+  <td class="py-3 pr-3">
+    <div class="flex items-center gap-2">
+      <span class="truncate font-medium text-slate-900">{{ material.name }}</span>
+      {% if not material.is_required %}
+        <span class="badge-neutral shrink-0">非必需</span>
+      {% endif %}
+    </div>
+  </td>
+  <td class="py-3 pr-3">
+    {% if material.status == "not_submitted" %}
+      <span class="badge-neutral">未提交</span>
+    {% elif material.status == "submitted" %}
+      <span class="badge-brand">已提交</span>
+    {% elif material.status == "pending_review" %}
+      <span class="badge-warning">待核对</span>
+    {% elif material.status == "checked" %}
+      <span class="badge-success">已核对</span>
+    {% elif material.status == "needs_supplement" %}
+      <span class="badge-danger">需要补充</span>
+    {% else %}
+      <span class="badge-neutral">不适用</span>
+    {% endif %}
+  </td>
+  <td class="py-3 pr-3">
+    {% if material.document %}
+      <span class="inline-flex items-center gap-1 text-body-sm text-slate-700">
+        <svg class="h-3.5 w-3.5 shrink-0 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+        </svg>
+        {{ material.document }}
+      </span>
+    {% else %}
+      <span class="text-body-sm text-slate-400">—</span>
+    {% endif %}
+  </td>
+  <td class="py-3">
+    {% if material.checked_by %}
+      <p class="text-body-sm text-slate-500">核对：{{ material.checked_by.username }}</p>
+      <p class="text-body-sm text-slate-400">{{ material.checked_at|date:"Y-m-d H:i" }}</p>
+    {% endif %}
+  </td>
+  <td class="py-3 text-right">
+    {% if status_form.fields.new_status.choices %}
+      <form method="post" action="{% url 'claims:claim_material_status' pk=material.claim.pk mid=material.pk %}"
+            class="inline-flex items-center gap-2">
+        {% csrf_token %}
+        {{ status_form.new_status }}
+        <button type="submit" class="btn-secondary btn-sm">流转</button>
+      </form>
+    {% else %}
+      <span class="text-body-sm text-slate-400">终态</span>
+    {% endif %}
+    {% has_perm "can_manage_customers" as can_manage %}
+    {% if can_manage %}
+      <form method="post" action="{% url 'claims:claim_material_delete' pk=material.claim.pk mid=material.pk %}"
+            class="ml-2 inline"
+            onsubmit="return confirm('确认删除材料「{{ material.name }}」？可在回收站恢复。')">
+        {% csrf_token %}
+        <button type="submit" class="btn-danger btn-sm">删除</button>
+      </form>
+    {% endif %}
+  </td>
+</tr>
