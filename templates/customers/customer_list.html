@@ -1,36 +1,83 @@
 {% extends "base.html" %}
+{% load perm_tags %}
 
 {% block title %}客户 — 客迹 Keji{% endblock %}
 
-{# 左栏：搜索 + 筛选占位（真实查询由 T4.2 实现） #}
+{# 左栏：搜索 + 状态下拉 + 标签 chips 多选 #}
 {% block sidebar %}
   <div class="card">
     <h2 class="mb-3 text-body-sm font-semibold text-slate-900">筛选</h2>
     <form method="get" class="space-y-3">
       <div>
         <label for="q" class="label">搜索</label>
-        <input type="search" id="q" name="q" placeholder="姓名 / 手机号 / 标签" class="input">
+        <input type="search" id="q" name="q" value="{{ q }}" placeholder="姓名 / 手机号 / 微信昵称" class="input">
       </div>
       <div>
-        <label for="tag" class="label">标签</label>
-        <select id="tag" name="tag" class="input">
-          <option value="">全部标签</option>
+        <label for="status" class="label">状态</label>
+        <select id="status" name="status" class="input">
+          <option value="">全部状态</option>
+          {% for status in statuses %}
+            <option value="{{ status.id }}" {% if status.id|stringformat:"s" == selected_status %}selected{% endif %}>{{ status.name }}</option>
+          {% endfor %}
         </select>
       </div>
+      <div>
+        <span class="label">标签（可多选）</span>
+        {% if tags %}
+          <div class="space-y-2">
+            {% for tag in tags %}
+              <label class="flex items-center gap-2">
+                <input type="checkbox" name="tag" value="{{ tag.id }}"
+                       {% if tag.id|stringformat:"s" in selected_tag_ids %}checked{% endif %}
+                       class="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500">
+                <span class="text-body-sm text-slate-600">{{ tag.name }}</span>
+              </label>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="text-body-sm text-slate-400">暂无标签</p>
+        {% endif %}
+      </div>
       <button type="submit" class="btn-secondary w-full">筛选</button>
+      <a href="{% url 'customers:customer_list' %}" class="btn-sm block w-full text-center text-slate-500 hover:text-slate-700">清除筛选</a>
     </form>
   </div>
 {% endblock %}
 
 {% block content %}
-  <h1 class="mb-4 text-xl font-semibold tracking-tight text-slate-900">客户列表</h1>
-  {% include "components/empty_state.html" with icon="users" title="还没有客户" description="客户档案、标签与关系图谱会显示在这里（T4.2 实现）" %}
+  <div class="mb-4 flex items-center justify-between gap-3">
+    <h1 class="text-xl font-semibold tracking-tight text-slate-900">客户列表</h1>
+    {% has_perm "can_manage_customers" as can_manage %}
+    {% if can_manage %}
+      <a href="{% url 'customers:customer_create' %}" class="btn-primary btn-sm">新增客户</a>
+    {% endif %}
+  </div>
+
+  {% if page_obj.object_list %}
+    <div class="space-y-3">
+      {% for customer in page_obj.object_list %}
+        {% include "customers/_customer_card.html" with customer=customer %}
+      {% endfor %}
+    </div>
+    {% include "components/pagination.html" with page_obj=page_obj extra_query=extra_query %}
+  {% else %}
+    {% include "components/empty_state.html" with icon="users" title="还没有客户" description="在右上方「新增客户」建立第一份档案，或调整筛选条件重试。" %}
+  {% endif %}
 {% endblock %}
 
-{# 右栏：客户摘要占位（T4.2 实现） #}
+{# 右栏：列表摘要 #}
 {% block right_sidebar %}
   <div class="card">
-    <h2 class="text-body-sm font-semibold text-slate-900">客户摘要</h2>
-    <p class="mt-2 text-body-sm leading-relaxed text-slate-500">选中客户后，基本信息、标签与最近动态会显示在这里。</p>
+    <h2 class="text-body-sm font-semibold text-slate-900">列表摘要</h2>
+    <dl class="mt-3 space-y-2 text-body-sm">
+      <div class="flex items-center justify-between">
+        <dt class="text-slate-500">全部客户</dt>
+        <dd class="font-medium text-slate-900">{{ total_count }}</dd>
+      </div>
+      <div class="flex items-center justify-between">
+        <dt class="text-slate-500">当前结果</dt>
+        <dd class="font-medium text-slate-900">{{ page_obj.paginator.count }}</dd>
+      </div>
+    </dl>
   </div>
 {% endblock %}

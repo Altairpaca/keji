@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}确认合并 — 客迹 Keji{% endblock %}
+
+{% block content %}
+  <div class="mx-auto max-w-3xl">
+    <h1 class="mb-4 text-xl font-semibold tracking-tight text-slate-900">确认合并客户</h1>
+    <p class="mb-4 text-body-sm text-slate-500">
+      合并后保留 <strong class="text-slate-900">{{ target.name }}</strong>，来源客户
+      <strong class="text-slate-900">{{ source.name }}</strong> 将被软删除（可恢复）。
+    </p>
+
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <section class="card">
+        <h2 class="text-body font-semibold text-slate-900">目标（保留）</h2>
+        <dl class="mt-2 space-y-1.5 text-body-sm">
+          <div class="flex justify-between gap-3"><dt class="text-slate-500">姓名</dt><dd class="text-slate-900">{{ target_summary.name }}</dd></div>
+          <div class="flex justify-between gap-3"><dt class="text-slate-500">手机号</dt><dd class="text-slate-900">{{ target_summary.phone|default:"—" }}</dd></div>
+          <div class="flex justify-between gap-3"><dt class="text-slate-500">微信</dt><dd class="truncate text-slate-900">{{ target_summary.wechat_nickname|default:"—" }}</dd></div>
+          <div class="flex justify-between gap-3"><dt class="text-slate-500">地区</dt><dd class="text-slate-900">{{ target_summary.region|default:"—" }}</dd></div>
+          <div class="flex justify-between gap-3"><dt class="text-slate-500">负责人</dt><dd class="truncate text-slate-900">{{ target_summary.owner|default:"—" }}</dd></div>
+          <div class="flex justify-between gap-3"><dt class="text-slate-500">标签</dt><dd class="text-slate-900">{{ target_summary.tags|join:"、"|default:"—" }}</dd></div>
+        </dl>
+      </section>
+
+      <section class="card">
+        <h2 class="text-body font-semibold text-slate-900">来源（将被合并）</h2>
+        <dl class="mt-2 space-y-1.5 text-body-sm">
+          <div class="flex justify-between gap-3"><dt class="text-slate-500">姓名</dt><dd class="text-slate-900">{{ source_summary.name }}</dd></div>
+          <div class="flex justify-between gap-3"><dt class="text-slate-500">手机号</dt><dd class="text-slate-900">{{ source_summary.phone|default:"—" }}</dd></div>
+          <div class="flex justify-between gap-3"><dt class="text-slate-500">微信</dt><dd class="truncate text-slate-900">{{ source_summary.wechat_nickname|default:"—" }}</dd></div>
+          <div class="flex justify-between gap-3"><dt class="text-slate-500">地区</dt><dd class="text-slate-900">{{ source_summary.region|default:"—" }}</dd></div>
+          <div class="flex justify-between gap-3"><dt class="text-slate-500">负责人</dt><dd class="truncate text-slate-900">{{ source_summary.owner|default:"—" }}</dd></div>
+          <div class="flex justify-between gap-3"><dt class="text-slate-500">标签</dt><dd class="text-slate-900">{{ source_summary.tags|join:"、"|default:"—" }}</dd></div>
+        </dl>
+      </section>
+    </div>
+
+    <form method="post" action="{% url 'customers:merge_do' %}" class="mt-6 flex items-center justify-end gap-3">
+      {% csrf_token %}
+      <input type="hidden" name="target" value="{{ target.pk }}">
+      <input type="hidden" name="source" value="{{ source.pk }}">
+      <a href="{% url 'customers:duplicate_list' %}" class="btn-secondary">取消</a>
+      <button type="submit" class="btn-primary">确认合并</button>
+    </form>
+  </div>
+{% endblock %}

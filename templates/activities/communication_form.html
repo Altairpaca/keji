@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}沟通记录{% if form.instance.pk %}编辑{% else %}新建{% endif %} — 客迹 Keji{% endblock %}
+
+{% block content %}
+  <div class="mx-auto max-w-2xl">
+    <h1 class="mb-4 text-xl font-semibold tracking-tight text-slate-900">
+      {% if form.instance.pk %}编辑沟通记录{% else %}记录沟通{% endif %}
+    </h1>
+
+    {% if form.non_field_errors %}
+      <div class="mb-4 rounded-lg border border-red-200 bg-red-50 px-3.5 py-2.5 text-body-sm text-red-800" role="alert">
+        {% for error in form.non_field_errors %}
+          <p>{{ error }}</p>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <form method="post" class="space-y-6">
+      {% csrf_token %}
+
+      <section class="card space-y-4">
+        <h2 class="text-body font-semibold text-slate-900">沟通信息</h2>
+
+        {% for field in form %}
+          {% if field.name == "customer" and preselected_customer %}
+            {# 预选客户：隐藏下拉，只读展示 #}
+            {{ field.as_hidden }}
+            <div>
+              <label class="label">客户</label>
+              <p class="text-body-sm text-slate-700">{{ preselected_customer.name }}</p>
+            </div>
+          {% else %}
+            <div>
+              <label for="{{ field.id_for_label }}" class="label">{{ field.label }}</label>
+              {{ field }}
+              {% for error in field.errors %}
+                <p class="mt-1 text-body-sm text-red-600">{{ error }}</p>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endfor %}
+      </section>
+
+      <div class="flex items-center justify-end gap-3">
+        <a href="{% url 'activities:event_list' %}" class="btn-secondary">取消</a>
+        <button type="submit" class="btn-primary">保存</button>
+      </div>
+    </form>
+  </div>
+{% endblock %}

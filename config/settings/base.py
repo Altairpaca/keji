@@ -152,6 +152,11 @@ STATIC_ROOT: Path = BASE_DIR / "staticfiles"
 MEDIA_URL: str = "/media/"
 MEDIA_ROOT: Path = Path(os.environ.get("MEDIA_ROOT", str(BASE_DIR / "media")))
 
+# 文档上传单文件大小上限（字节，默认 100MB），security.md §4 大文件限制。
+DOCUMENT_MAX_UPLOAD_SIZE: int = int(
+    os.environ.get("DOCUMENT_MAX_UPLOAD_SIZE", str(100 * 1024 * 1024))
+)
+
 # ---------------------------------------------------------------------------
 # 杂项
 # ---------------------------------------------------------------------------

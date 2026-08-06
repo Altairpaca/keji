@@ -1,0 +1,48 @@
+{% comment %}
+关系单项行（列表页 / 详情卡片共用）。
+依赖上下文：customer（当前客户）、relation（CustomerRelation）。
+方向由 from_customer_id 与当前客户比较得出：出 = 当前客户是发起方。
+{% endcomment %}
+{% load perm_tags %}
+<li class="flex items-start justify-between gap-3 py-3">
+  <div class="min-w-0">
+    <div class="flex flex-wrap items-center gap-2">
+      {% if relation.from_customer_id == customer.pk %}
+        <span class="badge badge-brand">出</span>
+      {% else %}
+        <span class="badge badge-neutral">入</span>
+      {% endif %}
+      <span class="font-medium text-slate-900">
+        {% if relation.from_customer_id == customer.pk %}
+          <a href="/customers/" class="text-slate-900">{{ relation.to_customer.name }}</a>
+        {% else %}
+          <a href="/customers/" class="text-slate-900">{{ relation.from_customer.name }}</a>
+        {% endif %}
+      </span>
+      <span class="badge badge-accent">
+        {% if relation.relation_type == 'custom' and relation.custom_label %}
+          {{ relation.custom_label }}
+        {% else %}
+          {{ relation.get_relation_type_display }}
+        {% endif %}
+      </span>
+    </div>
+    {% if relation.note %}
+      <p class="mt-1 text-body-sm leading-relaxed text-slate-500">{{ relation.note }}</p>
+    {% endif %}
+    <p class="mt-0.5 text-body-sm text-slate-400">{{ relation.created_at|date:"Y-m-d" }}</p>
+  </div>
+  {% has_perm 'can_manage_customers' as can_manage %}
+  {% if can_manage %}
+    <form method="post" action="{% url 'customers:relation_delete' customer.pk relation.pk %}"
+          onsubmit="return confirm('确定删除这条关系吗？')">
+      {% csrf_token %}
+      <button type="submit" class="btn-sm text-red-600 hover:text-red-700" aria-label="删除关系">
+        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+        </svg>
+        <span class="sr-only">删除</span>
+      </button>
+    </form>
+  {% endif %}
+</li>

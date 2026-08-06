@@ -60,6 +60,12 @@
   .badge-success {
     @apply badge bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200;
   }
+  .badge-warning {
+    @apply badge bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-200;
+  }
+  .badge-danger {
+    @apply badge bg-red-50 text-red-700 ring-1 ring-inset ring-red-200;
+  }
 
   /* 表单输入：统一输入框 / 下拉 / 文本域外观 */
   .input {

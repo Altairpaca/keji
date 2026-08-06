@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}重复客户 — 客迹 Keji{% endblock %}
+
+{% block content %}
+  <div class="mx-auto max-w-3xl">
+    <h1 class="mb-4 text-xl font-semibold tracking-tight text-slate-900">重复客户检测</h1>
+
+    {% if not phone_groups and not name_groups %}
+      {% include "components/empty_state.html" with icon="check" title="没有检测到重复客户" description="同手机号或同名的客户会分组显示在这里。" %}
+    {% endif %}
+
+    {% if phone_groups %}
+      <section class="card mb-4">
+        <h2 class="text-body font-semibold text-slate-900">同手机号</h2>
+        <p class="mt-1 text-body-sm text-slate-400">同号码客户 ≥2 人时成组，建议合并为一份档案。</p>
+        <ul class="mt-3 divide-y divide-slate-100">
+          {% for rep, dupes in phone_groups %}
+            <li class="py-3">
+              {% include "customers/_duplicate_group.html" with rep=rep dupes=dupes %}
+            </li>
+          {% endfor %}
+        </ul>
+      </section>
+    {% endif %}
+
+    {% if name_groups %}
+      <section class="card">
+        <h2 class="text-body font-semibold text-slate-900">同名客户</h2>
+        <p class="mt-1 text-body-sm text-slate-400">姓名去空格、忽略大小写后相同，建议人工核对。</p>
+        <ul class="mt-3 divide-y divide-slate-100">
+          {% for rep, dupes in name_groups %}
+            <li class="py-3">
+              {% include "customers/_duplicate_group.html" with rep=rep dupes=dupes %}
+            </li>
+          {% endfor %}
+        </ul>
+      </section>
+    {% endif %}
+  </div>
+{% endblock %}

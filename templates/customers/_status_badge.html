@@ -1,0 +1,22 @@
+{% comment %}
+状态徽标：把 15 个默认状态映射到语义组件色（badge-neutral / badge-warning / badge-brand / badge-success / badge-danger）。
+用法：{% include "customers/_status_badge.html" with status=customer.status %}
+参数：status — CustomerStatus 实例或 None
+{% endcomment %}
+{% if status %}
+  {% if status.name == "待首次联系" or status.name == "暂时无需求" or status.name == "已结案" %}
+    <span class="badge-neutral" data-testid="status-badge">{{ status.name }}</span>
+  {% elif status.name == "电话未接" or status.name == "等待回复" or status.name == "多次失约" %}
+    <span class="badge-warning" data-testid="status-badge">{{ status.name }}</span>
+  {% elif status.name == "已加微信" or status.name == "已预约" or status.name == "已联系" %}
+    <span class="badge-brand" data-testid="status-badge">{{ status.name }}</span>
+  {% elif status.name == "已见面" or status.name == "长期维护" or status.name == "保单服务中" or status.name == "理赔处理中" %}
+    <span class="badge-success" data-testid="status-badge">{{ status.name }}</span>
+  {% elif status.name == "明确拒绝" or status.name == "暂停联系" %}
+    <span class="badge-danger" data-testid="status-badge">{{ status.name }}</span>
+  {% else %}
+    <span class="badge-neutral" data-testid="status-badge">{{ status.name }}</span>
+  {% endif %}
+{% else %}
+  <span class="badge-neutral" data-testid="status-badge">未设状态</span>
+{% endif %}

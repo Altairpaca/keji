@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% load perm_tags %}
+{% has_perm 'can_manage_customers' as can_manage %}
+
+{% block title %}工作事件 — 客迹 Keji{% endblock %}
+
+{% block content %}
+  <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+    <div>
+      <h1 class="text-xl font-semibold tracking-tight text-slate-900">工作事件</h1>
+      <p class="mt-1 text-body-sm text-slate-500">全部客户的工作事件，按发生时间倒序排列</p>
+    </div>
+    {% if can_manage %}
+      <a href="{% url 'activities:work_event_create' %}" class="btn-primary">新建工作事件</a>
+    {% endif %}
+  </div>
+
+  {# 筛选：事件类型 + 客户 #}
+  <form method="get" class="card mb-5 grid grid-cols-1 gap-3 sm:grid-cols-[1fr_1fr_auto]">
+    <div>
+      <label for="type" class="label">事件类型</label>
+      <select id="type" name="type" class="input">
+        <option value="">全部类型</option>
+        {% for value, label in type_choices %}
+          <option value="{{ value }}" {% if selected_type == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label for="customer" class="label">客户</label>
+      <select id="customer" name="customer" class="input">
+        <option value="">全部客户</option>
+        {% for customer in customers %}
+          <option value="{{ customer.pk }}" {% if selected_customer == customer.pk|stringformat:"s" %}selected{% endif %}>{{ customer.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="flex items-end">
+      <button type="submit" class="btn-secondary w-full sm:w-auto">筛选</button>
+    </div>
+  </form>
+
+  {# 事件列表 #}
+  {% if page_obj.object_list %}
+    <div class="space-y-4">
+      {% for event in page_obj.object_list %}
+        {% include "activities/_event_card.html" with event=event can_manage=can_manage %}
+      {% endfor %}
+    </div>
+    {% include "components/pagination.html" with page_obj=page_obj extra_query=extra_query %}
+  {% else %}
+    {% url 'activities:work_event_create' as create_url %}
+    {% if can_manage %}
+      {% include "components/empty_state.html" with icon="calendar" title="还没有工作事件" description="记录每次拜访、电话、微信沟通等，按发生时间出现在这里" action_url=create_url action_label="记录第一件" %}
+    {% else %}
+      {% include "components/empty_state.html" with icon="calendar" title="还没有工作事件" description="记录每次拜访、电话、微信沟通等，按发生时间出现在这里" %}
+    {% endif %}
+  {% endif %}
+{% endblock %}

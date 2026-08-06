@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% load perm_tags %}
+
+{% block title %}标签管理 — 客迹 Keji{% endblock %}
+
+{% block content %}
+  <div class="space-y-6">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <h1 class="text-xl font-semibold tracking-tight text-slate-900">标签管理</h1>
+      {% has_perm "can_manage_enums" as can_manage %}
+      {% if can_manage %}
+        <a href="{% url 'customers:tag_create' %}" class="btn-primary btn-sm">新建标签</a>
+      {% endif %}
+    </div>
+
+    <section class="card overflow-x-auto">
+      {% if rows %}
+        <table class="w-full min-w-[560px] text-body-sm">
+          <thead>
+            <tr class="border-b border-slate-200 text-left text-slate-500">
+              <th class="py-2.5 pr-4 font-medium">名称</th>
+              <th class="py-2.5 pr-4 font-medium">颜色</th>
+              <th class="py-2.5 pr-4 font-medium">客户数</th>
+              <th class="py-2.5 pr-4 font-medium">描述</th>
+              <th class="py-2.5 text-right font-medium">操作</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            {% for tag, customer_count in rows %}
+              <tr class="text-slate-900">
+                <td class="py-2.5 pr-4 font-medium">{{ tag.name }}</td>
+                <td class="py-2.5 pr-4">
+                  <span class="badge" style="background-color: {{ tag.color }}22; color: {{ tag.color }}">{{ tag.name }}</span>
+                </td>
+                <td class="py-2.5 pr-4 text-slate-600">{{ customer_count }}</td>
+                <td class="max-w-[16rem] truncate py-2.5 pr-4 text-slate-500">{{ tag.description|default:"—" }}</td>
+                <td class="py-2.5 text-right">
+                  {% if can_manage %}
+                    <div class="flex items-center justify-end gap-2">
+                      <a href="{% url 'customers:tag_edit' pk=tag.pk %}" class="btn-secondary btn-sm">编辑</a>
+                      <form method="post" action="{% url 'customers:tag_delete' pk=tag.pk %}"
+                            onsubmit="return confirm('确认删除标签「{{ tag.name }}」？关联客户不受影响。')">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-danger btn-sm">删除</button>
+                      </form>
+                    </div>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        {% include "components/empty_state.html" with icon="inbox" title="还没有标签" description="标签用于给客户分类，例如 vip、老客户。" %}
+      {% endif %}
+    </section>
+  </div>
+{% endblock %}
