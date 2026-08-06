@@ -77,6 +77,7 @@ class Policy(TimeStampedModel, UUIDModel, SoftDeleteModel):
         max_length=30,
         choices=Status.choices,
         default=Status.ACTIVE,
+        db_index=True,
         verbose_name="状态",
     )
     remark = models.TextField(blank=True, verbose_name="备注")

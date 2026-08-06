@@ -61,7 +61,11 @@ class Task(TimeStampedModel, UUIDModel, SoftDeleteModel):
         max_length=10, choices=Priority.choices, default=Priority.MEDIUM, verbose_name="优先级"
     )
     status = models.CharField(
-        max_length=20, choices=Status.choices, default=Status.OPEN, verbose_name="状态"
+        max_length=20,
+        choices=Status.choices,
+        default=Status.OPEN,
+        db_index=True,
+        verbose_name="状态",
     )
     completed_at = models.DateTimeField(null=True, blank=True, verbose_name="完成时间")
     cancelled_at = models.DateTimeField(null=True, blank=True, verbose_name="取消时间")

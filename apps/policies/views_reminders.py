@@ -7,6 +7,7 @@ sync_premium_reminder_tasks）；权限边界统一走 accounts.require_permissi
 import uuid
 
 from django.contrib import messages
+from django.core.paginator import Paginator
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -24,10 +25,13 @@ from apps.policies.services.reminders import (
 # 参与缴费提醒的保单状态。
 ACTIVE_STATUSES = ("active", "paying")
 
+#: 每页条数（与 policy_list 一致的量级）。
+PAGE_SIZE = 20
+
 
 @require_permission("can_view_customers")
 def reminder_list(request: HttpRequest) -> HttpResponse:
-    """缴费提醒列表：active / paying 且存在应缴批次的保单，按应缴日排序。"""
+    """缴费提醒列表：active / paying 且存在应缴批次的保单，按应缴日排序 + 分页。"""
     today = timezone.localdate()
     policies = (
         Policy.objects.filter(status__in=ACTIVE_STATUSES)
@@ -45,7 +49,8 @@ def reminder_list(request: HttpRequest) -> HttpResponse:
         if (due := premium_due_date(policy)) is not None
     ]
     rows.sort(key=lambda row: row["due_date"])
-    return render(request, "policies/reminder_list.html", {"rows": rows, "today": today})
+    page_obj = Paginator(rows, PAGE_SIZE).get_page(request.GET.get("page"))
+    return render(request, "policies/reminder_list.html", {"page_obj": page_obj, "today": today})
 
 
 @require_permission("can_manage_customers")

@@ -1,11 +1,16 @@
 """dashboard 视图：登录后首页与全局搜索（规格 §15 / ADR-003）。"""
 
+from django.core.cache import cache
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
 
 from apps.accounts.permissions import require_permission
 from apps.core.services.search import SearchResult, search_all
 from apps.dashboard.services.queue import build_stats, build_work_queue
+
+#: 首页统计卡缓存时长（秒）：60s 内重复请求复用聚合结果（规格 §25 缓存）。
+STATS_CACHE_KEY = "dashboard:stats"
+STATS_CACHE_TIMEOUT = 60
 
 #: 结果分组标题（按 ENTITY_SEARCHERS 固定顺序渲染）。
 _GROUP_LABELS: dict[str, str] = {
@@ -23,7 +28,7 @@ def home(request: HttpRequest) -> HttpResponse:
     user = request.user
     context = {
         "queue": build_work_queue(user),
-        "stats": build_stats(),
+        "stats": cache.get_or_set(STATS_CACHE_KEY, build_stats, STATS_CACHE_TIMEOUT),
         # 无完整管理权限时模板显示受限提示（只读视图）。
         "restricted": not user.has_bit("can_manage_customers"),
     }
