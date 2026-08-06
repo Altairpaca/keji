@@ -96,88 +96,6 @@
         </dl>
       </section>
 
-      {# 在处理什么：未完成待办 / 进行中保单 / 理赔中案件 #}
-      <section class="card">
-        <h2 class="mb-3 text-body-sm font-semibold uppercase tracking-wide text-slate-400">在处理什么</h2>
-        <div class="space-y-3">
-          <div>
-            <div class="mb-1 flex items-center justify-between">
-              <span class="text-body-sm font-medium text-slate-600">未完成待办</span>
-              {% if open_tasks_count %}<span class="badge badge-neutral">{{ open_tasks_count }}</span>{% endif %}
-            </div>
-            {% if open_tasks %}
-              <ul class="space-y-1">
-                {% for task in open_tasks %}
-                  <li class="flex items-center justify-between gap-2 rounded-lg bg-slate-50 px-2.5 py-2">
-                    <span class="min-w-0 truncate text-body-sm text-slate-900">{{ task.title }}</span>
-                    <span class="shrink-0 text-body-sm text-slate-400">{{ task.due_date|date:"m-d" }}</span>
-                  </li>
-                {% endfor %}
-              </ul>
-            {% else %}
-              <p class="text-body-sm text-slate-400">暂无未完成待办</p>
-            {% endif %}
-          </div>
-          <div>
-            <div class="mb-1 flex items-center justify-between">
-              <span class="text-body-sm font-medium text-slate-600">进行中保单</span>
-              {% if active_policies_count %}<span class="badge badge-neutral">{{ active_policies_count }}</span>{% endif %}
-            </div>
-            {% if active_policies %}
-              <ul class="space-y-1">
-                {% for policy in active_policies %}
-                  <li class="flex items-center justify-between gap-2 rounded-lg bg-slate-50 px-2.5 py-2">
-                    <span class="min-w-0 truncate text-body-sm text-slate-900">{{ policy.name }}</span>
-                    <span class="shrink-0 text-body-sm text-slate-400">{{ policy.get_status_display }}</span>
-                  </li>
-                {% endfor %}
-              </ul>
-            {% else %}
-              <p class="text-body-sm text-slate-400">暂无进行中保单</p>
-            {% endif %}
-          </div>
-          <div>
-            <div class="mb-1 flex items-center justify-between">
-              <span class="text-body-sm font-medium text-slate-600">理赔中案件</span>
-              {% if open_claims_count %}<span class="badge badge-neutral">{{ open_claims_count }}</span>{% endif %}
-            </div>
-            {% if open_claims %}
-              <ul class="space-y-1">
-                {% for claim in open_claims %}
-                  <li class="flex items-center justify-between gap-2 rounded-lg bg-slate-50 px-2.5 py-2">
-                    <span class="min-w-0 truncate text-body-sm text-slate-900">{{ claim.name }}</span>
-                    <span class="shrink-0 text-body-sm text-slate-400">{{ claim.get_status_display }}</span>
-                  </li>
-                {% endfor %}
-              </ul>
-            {% else %}
-              <p class="text-body-sm text-slate-400">暂无理赔中案件</p>
-            {% endif %}
-          </div>
-        </div>
-      </section>
-
-      {# 上次发生什么：最近 5 条时间线 #}
-      <section class="card">
-        <h2 class="mb-3 text-body-sm font-semibold uppercase tracking-wide text-slate-400">上次发生什么</h2>
-        {% if timeline_entries %}
-          <ul class="space-y-2.5">
-            {% for entry in timeline_entries %}
-              <li class="flex items-start gap-2.5">
-                <span class="badge {{ entry.badge_class }} shrink-0">{{ entry.label }}</span>
-                <div class="min-w-0 flex-1">
-                  <p class="truncate text-body-sm font-medium text-slate-900">{{ entry.title }}</p>
-                  {% if entry.summary %}<p class="truncate text-body-sm text-slate-500">{{ entry.summary }}</p>{% endif %}
-                  <p class="text-xs text-slate-400">{{ entry.occurred_at|date:"m-d H:i" }}</p>
-                </div>
-              </li>
-            {% endfor %}
-          </ul>
-        {% else %}
-          <p class="text-body-sm text-slate-400">暂无动态记录</p>
-        {% endif %}
-      </section>
-
       {# 下一步做什么：下次跟进醒目卡 + 最近待办 #}
       <section class="card">
         <h2 class="mb-3 text-body-sm font-semibold uppercase tracking-wide text-slate-400">下一步做什么</h2>
@@ -203,6 +121,87 @@
           </div>
         {% endif %}
       </section>
+
+      {# 在处理什么：未完成待办 / 进行中保单 / 理赔中案件；三项全空时折叠为一行提示 #}
+      <section class="card">
+        <h2 class="mb-3 text-body-sm font-semibold uppercase tracking-wide text-slate-400">在处理什么</h2>
+        {% if open_tasks or active_policies or open_claims %}
+          <div class="space-y-3">
+            {% if open_tasks %}
+              <div>
+                <div class="mb-1 flex items-center justify-between">
+                  <span class="text-body-sm font-medium text-slate-600">未完成待办</span>
+                  {% if open_tasks_count %}<span class="badge badge-neutral">{{ open_tasks_count }}</span>{% endif %}
+                </div>
+                <ul class="space-y-1">
+                  {% for task in open_tasks %}
+                    <li class="flex items-center justify-between gap-2 rounded-lg bg-slate-50 px-2.5 py-2">
+                      <span class="min-w-0 truncate text-body-sm text-slate-900">{{ task.title }}</span>
+                      <span class="shrink-0 text-body-sm text-slate-400">{{ task.due_date|date:"m-d" }}</span>
+                    </li>
+                  {% endfor %}
+                </ul>
+              </div>
+            {% endif %}
+            {% if active_policies %}
+              <div>
+                <div class="mb-1 flex items-center justify-between">
+                  <span class="text-body-sm font-medium text-slate-600">进行中保单</span>
+                  {% if active_policies_count %}<span class="badge badge-neutral">{{ active_policies_count }}</span>{% endif %}
+                </div>
+                <ul class="space-y-1">
+                  {% for policy in active_policies %}
+                    <li class="flex items-center justify-between gap-2 rounded-lg bg-slate-50 px-2.5 py-2">
+                      <span class="min-w-0 truncate text-body-sm text-slate-900">{{ policy.name }}</span>
+                      <span class="shrink-0 text-body-sm text-slate-400">{{ policy.get_status_display }}</span>
+                    </li>
+                  {% endfor %}
+                </ul>
+              </div>
+            {% endif %}
+            {% if open_claims %}
+              <div>
+                <div class="mb-1 flex items-center justify-between">
+                  <span class="text-body-sm font-medium text-slate-600">理赔中案件</span>
+                  {% if open_claims_count %}<span class="badge badge-neutral">{{ open_claims_count }}</span>{% endif %}
+                </div>
+                <ul class="space-y-1">
+                  {% for claim in open_claims %}
+                    <li class="flex items-center justify-between gap-2 rounded-lg bg-slate-50 px-2.5 py-2">
+                      <span class="min-w-0 truncate text-body-sm text-slate-900">{{ claim.name }}</span>
+                      <span class="shrink-0 text-body-sm text-slate-400">{{ claim.get_status_display }}</span>
+                    </li>
+                  {% endfor %}
+                </ul>
+              </div>
+            {% endif %}
+          </div>
+        {% else %}
+          <p class="text-body-sm text-slate-400">暂无进行中事项</p>
+        {% endif %}
+      </section>
+
+      {# 上次发生什么：最近 5 条时间线 #}
+      <section class="card">
+        <h2 class="mb-3 text-body-sm font-semibold uppercase tracking-wide text-slate-400">上次发生什么</h2>
+        {% if timeline_entries %}
+          <ul class="space-y-2.5">
+            {% for entry in timeline_entries %}
+              <li class="flex items-start gap-2.5">
+                <span class="badge {{ entry.badge_class }} shrink-0">{{ entry.label }}</span>
+                <div class="min-w-0 flex-1">
+                  <p class="truncate text-body-sm font-medium text-slate-900">{{ entry.title }}</p>
+                  {% if entry.summary %}<p class="truncate text-body-sm text-slate-500">{{ entry.summary }}</p>{% endif %}
+                  <p class="text-xs text-slate-400">{{ entry.occurred_at|date:"m-d H:i" }}</p>
+                </div>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="text-body-sm text-slate-400">暂无动态记录</p>
+        {% endif %}
+      </section>
+
     </div>
 
     {# 桌面中栏（≥1024px）：信息卡 + 时间线 + 占位区块，保持现有三栏布局 #}
