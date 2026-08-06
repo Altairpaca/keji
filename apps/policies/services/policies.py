@@ -8,6 +8,7 @@ from django.db import IntegrityError, transaction
 from django.db.models import QuerySet
 
 from apps.accounts.models import User
+from apps.audit.services import record_audit
 from apps.policies.models import Policy, PolicyStatusHistory
 
 # 合法状态迁移图：value → 可到达的 value 集合。
@@ -83,6 +84,14 @@ def change_status(
         )
         policy.status = new_status
         policy.save(update_fields=["status", "updated_at"])
+        record_audit(
+            actor=changed_by,
+            action="policy.change_status",
+            object_type=policy._meta.label_lower,
+            object_pk=str(policy.pk),
+            target_label=policy.policy_no,
+            detail={"from_status": from_status, "to_status": new_status},
+        )
     return policy
 
 

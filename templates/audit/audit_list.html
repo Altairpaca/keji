@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}审计日志 — 客迹 Keji{% endblock %}
+
+{% block content %}
+  <div class="mx-auto max-w-5xl">
+    <div class="mb-4 flex items-center justify-between gap-3">
+      <h1 class="text-xl font-semibold tracking-tight text-slate-900">审计日志</h1>
+    </div>
+
+    {# 筛选：action 下拉 + q 文本 #}
+    <form method="get" class="mb-4 flex flex-wrap items-end gap-3">
+      <div>
+        <label for="action" class="label">动作</label>
+        <select id="action" name="action" class="input">
+          <option value="">全部动作</option>
+          {% for choice in action_choices %}
+            <option value="{{ choice }}" {% if choice == current_action %}selected{% endif %}>{{ choice }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="min-w-56">
+        <label for="q" class="label">搜索</label>
+        <input type="search" id="q" name="q" value="{{ q }}" placeholder="动作 / 对象名称 / 操作用户" class="input">
+      </div>
+      <button type="submit" class="btn-secondary">筛选</button>
+      {% if current_action or q %}
+        <a href="{% url 'audit:list' %}" class="btn-sm text-slate-500 hover:text-slate-700">清除筛选</a>
+      {% endif %}
+    </form>
+
+    {% if page_obj.object_list %}
+      <div class="card overflow-hidden">
+        <table class="w-full text-left text-body-sm">
+          <thead class="border-b border-slate-100 text-slate-500">
+            <tr>
+              <th class="px-4 py-3 font-medium">时间</th>
+              <th class="px-4 py-3 font-medium">用户</th>
+              <th class="px-4 py-3 font-medium">动作</th>
+              <th class="px-4 py-3 font-medium">对象</th>
+              <th class="px-4 py-3 font-medium">结果</th>
+              <th class="px-4 py-3 font-medium">IP</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            {% for log in page_obj.object_list %}
+              <tr>
+                <td class="whitespace-nowrap px-4 py-3 text-slate-500">{{ log.created_at|date:"Y-m-d H:i:s" }}</td>
+                <td class="px-4 py-3 font-medium text-slate-900">
+                  {% if log.actor %}{{ log.actor.username }}{% else %}<span class="text-slate-400">系统 / 已注销</span>{% endif %}
+                </td>
+                <td class="px-4 py-3">
+                  <span class="badge-neutral">{{ log.action }}</span>
+                </td>
+                <td class="px-4 py-3 text-slate-600">
+                  {% if log.target_label %}{{ log.target_label }}{% else %}<span class="text-slate-400">—</span>{% endif %}
+                  {% if log.object_type %}<span class="block text-xs text-slate-400">{{ log.object_type }}</span>{% endif %}
+                </td>
+                <td class="px-4 py-3">
+                  {% if log.result == "success" %}
+                    <span class="badge-success">成功</span>
+                  {% elif log.result == "failure" %}
+                    <span class="text-red-600">失败</span>
+                  {% else %}
+                    <span class="badge-neutral">部分成功</span>
+                  {% endif %}
+                </td>
+                <td class="px-4 py-3 text-slate-500">{{ log.ip_address|default:"—" }}</td>
+              </tr>
+              {% if log.detail %}
+                <tr class="border-t-0 bg-slate-50/60">
+                  <td class="px-4 py-2" colspan="6">
+                    <details>
+                      <summary class="cursor-pointer text-xs font-medium text-slate-500 hover:text-slate-700">上下文详情</summary>
+                      <pre class="mt-2 overflow-x-auto rounded bg-slate-900 p-3 text-xs leading-relaxed text-slate-100">{{ log.detail }}</pre>
+                    </details>
+                  </td>
+                </tr>
+              {% endif %}
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% include "components/pagination.html" with page_obj=page_obj extra_query=extra_query %}
+    {% else %}
+      {% include "components/empty_state.html" with icon="shield" title="暂无审计记录" description="关键操作（删除 / 状态迁移 / 用户管理 / 导出等）落审计后在此展示。" %}
+    {% endif %}
+  </div>
+{% endblock %}

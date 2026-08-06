@@ -17,6 +17,8 @@ from django.db import transaction
 from django.db.models import QuerySet
 from django.utils import timezone
 
+from apps.accounts.models import User
+from apps.audit.services import record_audit
 from apps.documents.models import Document
 from apps.documents.storage import default_storage
 
@@ -29,18 +31,23 @@ def list_trashed_documents() -> QuerySet[Document]:
     return Document.all_objects.filter(is_deleted=True).order_by("-deleted_at")
 
 
-def _record_audit(event_type: str, *, document: Document, actor: object | None) -> None:
-    """审计钩子（T10.2 接入 audit app 前为 stub）。
+def _record_audit(event_type: str, *, document: Document, actor: User | None) -> None:
+    """审计钩子：永久删除留痕（规格 §18 / T10.2）。
 
-    规格 §18 要求永久删除留痕。audit app 尚未建模，此处仅占位：
-    后续由 apps/audit/services.py 的 ``record_audit`` 替换实现。
+    ``record_audit`` 内部保证落库失败不抛出（审计不阻断删除主流程）；
+    本调用位于事务内，由 record_audit 的独立保存点隔离失败。
     """
-    # TODO(T10.2): 接入 apps.audit 审计日志后，在此落一条
-    #  `event_type="document.permanent_delete", actor, metadata={"storage_key": ...}`。
-    del event_type, document, actor
+    record_audit(
+        actor=actor,
+        action=event_type,
+        object_type=document._meta.label_lower,
+        object_pk=str(document.pk),
+        target_label=document.original_name,
+        detail={"storage_key": document.storage_key},
+    )
 
 
-def permanent_delete_document(doc: Document, *, actor: object | None = None) -> dict[str, int]:
+def permanent_delete_document(doc: Document, *, actor: User | None = None) -> dict[str, int]:
     """永久删除单个已删文档（ADR-006 第 3 级，管理员触发）。
 
     事务内：先删原图物理文件，再删缩略图物理文件，最后真删 DB 记录。
@@ -65,7 +72,7 @@ def permanent_delete_document(doc: Document, *, actor: object | None = None) -> 
 def empty_trash(
     *,
     before_days: int = DEFAULT_RETENTION_DAYS,
-    actor: object | None = None,
+    actor: User | None = None,
 ) -> dict[str, int]:
     """GC：批量永久删除超过 ``before_days`` 天未恢复的已删文档。
 

@@ -15,6 +15,7 @@ from typing import BinaryIO
 
 from django.utils import timezone
 
+from apps.accounts.models import User
 from apps.claims.models import ClaimCase, ClaimMaterial
 from apps.documents.storage import default_storage
 
@@ -129,20 +130,16 @@ def _read_storage_file(storage_key: str) -> bytes:
         stream.close()
 
 
-def record_export_audit(*, claim: ClaimCase, user: object) -> None:
-    """审计接入点（T10.2）：apps.audit.services.record 可用则调用，否则跳过。
-
-    audit 服务尚未实现（仅 models.py），此处先做可导入探测；T10.2 实现
-    ``apps/audit/services/__init__.py`` 后即自动生效，无需改本函数签名。
-    """
+def record_export_audit(*, claim: ClaimCase, user: User | None) -> None:
+    """审计接入点：导出理赔 ZIP 记录到 audit（失败不阻断导出）。"""
     try:
-        from apps.audit.services import record as _record
+        from apps.audit.services import record_audit as _record_audit
     except ImportError:
         return
-    _record(
-        event_type="claim_export_zip",
-        object_id=str(claim.pk),
+    _record_audit(
+        action="claim_export_zip",
         object_type="claims.ClaimCase",
+        object_pk=str(claim.pk),
+        target_label=f"理赔案件：{claim.name}",
         actor=user,
-        summary=f"导出理赔案件资料 ZIP：{claim.name}",
     )

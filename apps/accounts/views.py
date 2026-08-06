@@ -23,6 +23,7 @@ from apps.accounts.services.rate_limit import (
     clear_login_failures,
     record_login_failure,
 )
+from apps.audit.services import record_audit
 
 
 @login_required
@@ -101,6 +102,15 @@ def user_create(request: HttpRequest) -> HttpResponse:
         password = form.cleaned_data.get("password") or secrets.token_urlsafe(12)
         user.set_password(password)
         user.save()
+        # 审计（规格 §17 / T10.2）：初始密码绝不进审计 detail。
+        record_audit(
+            actor=request.user,
+            action="user.create",
+            object_type=user._meta.label_lower,
+            object_pk=str(user.pk),
+            target_label=user.username,
+            request=request,
+        )
         if form.cleaned_data.get("password"):
             messages.success(request, f"用户 {user.username} 已创建")
         else:
@@ -127,6 +137,14 @@ def user_edit(request: HttpRequest, pk: uuid.UUID) -> HttpResponse:
     if request.method == "POST" and form.is_valid():
         form.save()
         messages.success(request, f"用户 {user.username} 已更新")
+        record_audit(
+            actor=request.user,
+            action="user.update",
+            object_type=user._meta.label_lower,
+            object_pk=str(user.pk),
+            target_label=user.username,
+            request=request,
+        )
         return redirect("accounts:user_list")
     return render(
         request,
@@ -150,5 +168,14 @@ def user_toggle_active(request: HttpRequest, pk: uuid.UUID) -> HttpResponse:
     user.is_active = not user.is_active
     user.save(update_fields=["is_active"])
     action = "已启用" if user.is_active else "已禁用"
+    record_audit(
+        actor=request.user,
+        action="user.toggle_active",
+        object_type=user._meta.label_lower,
+        object_pk=str(user.pk),
+        target_label=user.username,
+        detail={"is_active": user.is_active},
+        request=request,
+    )
     messages.success(request, f"用户 {user.username} {action}")
     return redirect("accounts:user_list")
