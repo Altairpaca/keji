@@ -1,0 +1,64 @@
+# 客迹 Keji — CI：lint / 类型检查 / 测试
+#
+# 与本地命令保持一致：
+#   - lint  = ruff check . && ruff format --check .
+#   - types = mypy config apps
+#   - test  = pytest（DJANGO_SETTINGS_MODULE=config.settings.dev，PostgreSQL 17）
+# 数据库凭据用 settings 默认值（keji/keji/keji，端口 5432），与本地开发容器一致。
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: lint + types + tests
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: keji
+          POSTGRES_USER: keji
+          POSTGRES_PASSWORD: keji
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U keji"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt
+
+      - name: Lint (ruff check)
+        run: ruff check .
+
+      - name: Format (ruff format --check)
+        run: ruff format --check .
+
+      - name: Type check (mypy)
+        run: mypy config apps
+
+      - name: Run tests (pytest)
+        env:
+          DJANGO_SETTINGS_MODULE: config.settings.dev
+          DB_HOST: 127.0.0.1
+          DB_PORT: "5432"
+          DB_NAME: keji
+          DB_USER: keji
+          DB_PASSWORD: keji
+        run: pytest

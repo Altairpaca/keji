@@ -1,0 +1,61 @@
+/* 客迹 Keji — Tailwind 入口源文件。
+ *
+ * 构建：npm run build:css  → static/css/tailwind.css（编译产物，提交入库，生产不依赖 Node）
+ * watch：npm run watch:css → 开发时监听 templates/ 与 static/js/ 变化自动重编译
+ *
+ * 自定义组件类放在 @layer components 中，供后续模板复用；
+ * 语义配色一律走 tailwind.config.js 的 token（brand / accent），不在模板里写裸色值。
+ */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  /* 按钮：主按钮 / 次要按钮 / 危险按钮三档 */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+    min-height: var(--spacing-touch-sm, 2.5rem);
+  }
+  .btn-primary {
+    @apply btn bg-brand-600 text-white hover:bg-brand-700 active:bg-brand-800;
+  }
+  .btn-secondary {
+    @apply btn border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 active:bg-slate-100;
+  }
+  .btn-danger {
+    @apply btn bg-red-600 text-white hover:bg-red-700 active:bg-red-800;
+  }
+
+  /* 卡片：客户卡片 / 摘要卡片通用容器 */
+  .card {
+    @apply rounded-card bg-white p-4 shadow-card ring-1 ring-slate-200/60;
+  }
+
+  /* 徽标：标签、状态点、计数 */
+  .badge {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium;
+  }
+  .badge-brand {
+    @apply badge bg-brand-50 text-brand-700 ring-1 ring-inset ring-brand-200;
+  }
+  .badge-accent {
+    @apply badge bg-accent-50 text-accent-700 ring-1 ring-inset ring-accent-200;
+  }
+  .badge-neutral {
+    @apply badge bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-200;
+  }
+  .badge-success {
+    @apply badge bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200;
+  }
+
+  /* 表单输入：统一输入框 / 下拉 / 文本域外观 */
+  .input {
+    @apply w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-body text-slate-900 placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30;
+  }
+
+  /* 表单标签 */
+  .label {
+    @apply mb-1 block text-body-sm font-medium text-slate-700;
+  }
+}
