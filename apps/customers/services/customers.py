@@ -8,6 +8,7 @@ from django.db import transaction
 from django.db.models import QuerySet
 
 from apps.accounts.models import User
+from apps.audit.services import record_audit
 from apps.customers.models import Customer, CustomerStatus, Tag
 
 
@@ -58,14 +59,30 @@ def update_customer(customer: Customer, **fields: object) -> Customer:
     return customer
 
 
-def soft_delete_customer(customer: Customer) -> Customer:
-    """软删除客户（ADR-006 第 1 级）。"""
-    return customer.soft_delete()
+def soft_delete_customer(customer: Customer, *, actor: User | None = None) -> Customer:
+    """软删除客户（ADR-006 第 1 级）；传入 actor 时落审计（规格 §17 / T10.2）。"""
+    deleted = customer.soft_delete()
+    record_audit(
+        actor=actor,
+        action="customer.soft_delete",
+        object_type=customer._meta.label_lower,
+        object_pk=str(customer.pk),
+        target_label=customer.name,
+    )
+    return deleted
 
 
-def restore_customer(customer: Customer) -> Customer:
-    """恢复软删除的客户。"""
-    return customer.restore()
+def restore_customer(customer: Customer, *, actor: User | None = None) -> Customer:
+    """恢复软删除的客户；传入 actor 时落审计（规格 §17 / T10.2）。"""
+    restored = customer.restore()
+    record_audit(
+        actor=actor,
+        action="customer.restore",
+        object_type=customer._meta.label_lower,
+        object_pk=str(customer.pk),
+        target_label=customer.name,
+    )
+    return restored
 
 
 def assign_tags(customer: Customer, tag_names: list[str]) -> Customer:

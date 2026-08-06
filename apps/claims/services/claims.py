@@ -11,6 +11,7 @@ from django.db.models import QuerySet
 from django.utils import timezone
 
 from apps.accounts.models import User
+from apps.audit.services import record_audit
 from apps.claims.models import ClaimCase, ClaimMaterial, ClaimMaterialTemplate
 from apps.customers.models import Customer
 from apps.documents.models import Document
@@ -123,6 +124,14 @@ def change_claim_status(
         # 防御：closed 为终态正常无法离开，但若历史数据异常则同步清空结案时间。
         claim.closed_at = None
     claim.save(update_fields=["status", "closed_at", "updated_at"])
+    record_audit(
+        actor=changed_by,
+        action="claim.change_status",
+        object_type=claim._meta.label_lower,
+        object_pk=str(claim.pk),
+        target_label=claim.name,
+        detail={"from_status": from_status, "to_status": new_status},
+    )
     return claim
 
 
@@ -188,6 +197,14 @@ def change_material_status(
         material.checked_by = None
         material.checked_at = None
     material.save(update_fields=["status", "checked_by", "checked_at", "updated_at"])
+    record_audit(
+        actor=changed_by,
+        action="claim.material_status",
+        object_type=material._meta.label_lower,
+        object_pk=str(material.pk),
+        target_label=material.name,
+        detail={"from_status": from_status, "to_status": new_status},
+    )
     return material
 
 

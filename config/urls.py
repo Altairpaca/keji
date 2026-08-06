@@ -32,6 +32,7 @@ urlpatterns = [
     path("claims/", include("apps.claims.urls")),
     path("policies/", include("apps.policies.urls")),
     path("tasks/", include("apps.tasks.urls")),
+    path("audit/", include("apps.audit.urls")),
     path("saved-views/", include("apps.core.urls")),
     path("export/", include("apps.core.urls_exports")),
     path("sw.js", pwa_views.service_worker, name="service_worker"),

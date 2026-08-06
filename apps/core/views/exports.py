@@ -13,6 +13,7 @@ from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404
 
 from apps.accounts.permissions import require_permission
+from apps.audit.services import record_audit
 from apps.core.services import exports
 from apps.customers.models import Customer
 
@@ -63,8 +64,15 @@ def export_customers(request: HttpRequest) -> HttpResponse:
     data = exports.export_customers_csv(_filtered_customers(request))
     response = HttpResponse(data, content_type="text/csv; charset=utf-8")
     response["Content-Disposition"] = _attachment_header("客户名单.csv")
-    # 审计（§10 / T10.2）：导出成功记录点 —— apps.audit 服务接入后在此记录
-    # {event_type: "customer_list_export", scope: "customers", meta: {"count": ...}}
+    # 审计（§10 / T10.2）：导出成功落审计。
+    record_audit(
+        actor=request.user,
+        action="export",
+        object_type="customers.customer",
+        target_label="客户名单",
+        detail={"format": "csv", "scope": "customers"},
+        request=request,
+    )
     return response
 
 
@@ -77,7 +85,16 @@ def export_customer_profile(request: HttpRequest, pk: uuid.UUID) -> HttpResponse
     response["Content-Disposition"] = _attachment_header(
         f"{exports.sanitize_filename(customer.name)}_档案.csv"
     )
-    # 审计（§10 / T10.2）：导出成功记录点 —— {event_type: "customer_profile_export"}
+    # 审计（§10 / T10.2）：导出成功落审计。
+    record_audit(
+        actor=request.user,
+        action="export",
+        object_type=customer._meta.label_lower,
+        object_pk=str(customer.pk),
+        target_label=f"{customer.name} 档案",
+        detail={"format": "csv"},
+        request=request,
+    )
     return response
 
 
@@ -90,7 +107,16 @@ def export_customer_timeline(request: HttpRequest, pk: uuid.UUID) -> HttpRespons
     response["Content-Disposition"] = _attachment_header(
         f"{exports.sanitize_filename(customer.name)}_时间线.csv"
     )
-    # 审计（§10 / T10.2）：导出成功记录点 —— {event_type: "customer_timeline_export"}
+    # 审计（§10 / T10.2）：导出成功落审计。
+    record_audit(
+        actor=request.user,
+        action="export",
+        object_type=customer._meta.label_lower,
+        object_pk=str(customer.pk),
+        target_label=f"{customer.name} 时间线",
+        detail={"format": "csv"},
+        request=request,
+    )
     return response
 
 
@@ -101,5 +127,14 @@ def export_customer_archive(request: HttpRequest, pk: uuid.UUID) -> HttpResponse
     data, filename = exports.export_customer_archive_zip(customer)
     response = HttpResponse(data, content_type="application/zip")
     response["Content-Disposition"] = _attachment_header(filename)
-    # 审计（§10 / T10.2）：导出成功记录点 —— {event_type: "customer_archive_export"}
+    # 审计（§10 / T10.2）：导出成功落审计（ZIP 含文档原件，敏感导出）。
+    record_audit(
+        actor=request.user,
+        action="export",
+        object_type=customer._meta.label_lower,
+        object_pk=str(customer.pk),
+        target_label=f"{customer.name} 资料包",
+        detail={"format": "zip"},
+        request=request,
+    )
     return response
