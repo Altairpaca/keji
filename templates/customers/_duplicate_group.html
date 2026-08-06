@@ -1,0 +1,19 @@
+{% comment %}
+重复客户组（合并入口）：展示组代表 + 其余成员，每个成员一个「合并」按钮。
+用法：{% include "customers/_duplicate_group.html" with rep=rep dupes=dupes %}
+参数：rep — 组代表 Customer；dupes — 其余成员 list[Customer]
+{% endcomment %}
+<div class="flex flex-wrap items-center justify-between gap-3">
+  <div class="min-w-0">
+    <p class="truncate text-body font-medium text-slate-900">{{ rep.name }}</p>
+    <p class="mt-0.5 truncate text-body-sm text-slate-500">{{ rep.phone|default:"—" }}</p>
+  </div>
+  <div class="flex flex-wrap gap-2">
+    {% for dupe in dupes %}
+      <a href="{% url 'customers:merge_confirm' %}?target={{ rep.pk }}&source={{ dupe.pk }}"
+         class="btn-secondary btn-sm" title="把 {{ dupe.name }} 合并进 {{ rep.name }}">
+        合并 {{ dupe.name }}
+      </a>
+    {% endfor %}
+  </div>
+</div>

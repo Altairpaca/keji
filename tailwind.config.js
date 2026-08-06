@@ -26,6 +26,8 @@ module.exports = {
     "badge-accent",
     "badge-neutral",
     "badge-success",
+    "badge-warning",
+    "badge-danger",
     "input",
     "label",
     "btn-sm",

@@ -1,0 +1,32 @@
+{% comment %}
+「关系」卡：详情右栏 / 列表右栏复用，内嵌最近 5 条 + 「查看全部」。
+依赖上下文：customer、recent_relations（列表）、relation_count（总数）。
+
+两种引入方式：
+  1) 详情页：{% load relations_tags %} {% relation_card customer %}
+  2) 视图已注入 relation_card_context(customer) 后直接 include 本模板。
+{% endcomment %}
+{% load perm_tags %}
+<div class="card">
+  <div class="flex items-center justify-between">
+    <h2 class="text-body-sm font-semibold text-slate-900">关系
+      {% if relation_count %}<span class="ml-1 text-slate-400">（{{ relation_count }}）</span>{% endif %}
+    </h2>
+    <a href="{% url 'customers:relation_list' customer.pk %}" class="text-body-sm font-medium text-brand-700 hover:text-brand-800">查看全部</a>
+  </div>
+  {% if recent_relations %}
+    <ul class="mt-1 divide-y divide-slate-100">
+      {% for relation in recent_relations %}
+        {% include "customers/_relation_item.html" with relation=relation %}
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="mt-2 text-body-sm leading-relaxed text-slate-500">暂无关系。</p>
+  {% endif %}
+  {% has_perm 'can_manage_customers' as can_manage %}
+  {% if can_manage %}
+    <a href="{% url 'customers:relation_create' customer.pk %}" class="btn-secondary btn-sm mt-3 w-full">
+      建立关系
+    </a>
+  {% endif %}
+</div>

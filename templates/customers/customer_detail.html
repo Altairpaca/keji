@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+{% load perm_tags %}
+{% load relations_tags %}
+
+{% block title %}{{ customer.name }} — 客迹 Keji{% endblock %}
+
+{# 左栏：简化客户列表（当前客户高亮），供桌面快速切换 #}
+{% block sidebar %}
+  <div class="card">
+    <div class="mb-3 flex items-center justify-between">
+      <h2 class="text-body-sm font-semibold text-slate-900">客户</h2>
+      <a href="{% url 'customers:customer_list' %}" class="text-body-sm font-medium text-brand-700 hover:text-brand-800">全部客户</a>
+    </div>
+    <div class="space-y-1">
+      {% for item in sidebar_customers %}
+        <a href="{% url 'customers:customer_detail' pk=item.pk %}"
+           class="nav-item {% if item.pk == customer.pk %}nav-item-active{% endif %}">
+          <span class="min-w-0 flex-1 truncate">{{ item.name }}</span>
+          {% include "customers/_status_badge.html" with status=item.status %}
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+{% endblock %}
+
+{% block content %}
+  <div class="space-y-6">
+    {# 头部：姓名 + 状态 + 操作 #}
+    <div class="flex flex-wrap items-start justify-between gap-3">
+      <div class="min-w-0">
+        <h1 class="truncate text-xl font-semibold tracking-tight text-slate-900">{{ customer.name }}</h1>
+        <div class="mt-1.5 flex flex-wrap items-center gap-2">
+          {% include "customers/_status_badge.html" with status=customer.status %}
+          <span class="text-body-sm text-slate-400">负责人：{{ customer.owner|default:"未分配" }}</span>
+        </div>
+      </div>
+      <div class="flex shrink-0 items-center gap-2">
+        {% has_perm "can_manage_customers" as can_manage %}
+        {% if can_manage %}
+          <a href="{% url 'customers:customer_edit' pk=customer.pk %}" class="btn-secondary btn-sm">编辑</a>
+        {% endif %}
+        {% has_perm "can_delete_customers" as can_delete %}
+        {% if can_delete %}
+          <form method="post" action="{% url 'customers:customer_delete' pk=customer.pk %}"
+                onsubmit="return confirm('确认删除客户 {{ customer.name }}？可在回收站恢复。')">
+            {% csrf_token %}
+            <button type="submit" class="btn-danger btn-sm">删除</button>
+          </form>
+        {% endif %}
+      </div>
+    </div>
+
+    {# 信息卡：全字段 #}
+    <section class="card">
+      <h2 class="mb-3 text-body font-semibold text-slate-900">基本信息</h2>
+      <dl class="grid grid-cols-1 gap-x-6 gap-y-3 text-body-sm sm:grid-cols-2">
+        <div>
+          <dt class="label">姓名</dt>
+          <dd class="text-slate-900">{{ customer.name }}</dd>
+        </div>
+        <div>
+          <dt class="label">性别</dt>
+          <dd class="text-slate-900">{{ customer.get_gender_display }}</dd>
+        </div>
+        <div>
+          <dt class="label">出生日期</dt>
+          <dd class="text-slate-900">{{ customer.birth_date|date:"Y-m-d"|default:"—" }}</dd>
+        </div>
+        <div>
+          <dt class="label">年龄说明</dt>
+          <dd class="text-slate-900">{{ customer.age_note|default:"—" }}</dd>
+        </div>
+        <div>
+          <dt class="label">手机号</dt>
+          <dd class="text-slate-900">{{ customer.phone|default:"—" }}</dd>
+        </div>
+        <div>
+          <dt class="label">微信昵称</dt>
+          <dd class="text-slate-900">{{ customer.wechat_nickname|default:"—" }}</dd>
+        </div>
+        <div>
+          <dt class="label">地区</dt>
+          <dd class="text-slate-900">{{ customer.region|default:"—" }}</dd>
+        </div>
+        <div>
+          <dt class="label">职业</dt>
+          <dd class="text-slate-900">{{ customer.occupation|default:"—" }}</dd>
+        </div>
+        <div>
+          <dt class="label">客户来源</dt>
+          <dd class="text-slate-900">{{ customer.source|default:"—" }}</dd>
+        </div>
+        <div>
+          <dt class="label">原服务人员</dt>
+          <dd class="text-slate-900">{{ customer.previous_agent|default:"—" }}</dd>
+        </div>
+        <div>
+          <dt class="label">首次接触日期</dt>
+          <dd class="text-slate-900">{{ customer.first_contact_date|date:"Y-m-d"|default:"—" }}</dd>
+        </div>
+        <div>
+          <dt class="label">最后联系日期</dt>
+          <dd class="text-slate-900">{{ customer.last_contact_date|date:"Y-m-d"|default:"—" }}</dd>
+        </div>
+        <div>
+          <dt class="label">下次跟进日期</dt>
+          <dd class="text-slate-900">{{ customer.next_followup_date|date:"Y-m-d"|default:"—" }}</dd>
+        </div>
+        <div>
+          <dt class="label">优先级</dt>
+          <dd class="text-slate-900">{{ customer.get_priority_display }}</dd>
+        </div>
+        <div>
+          <dt class="label">沟通偏好</dt>
+          <dd class="text-slate-900">{{ customer.communication_preference|default:"—" }}</dd>
+        </div>
+        <div class="sm:col-span-2">
+          <dt class="label">婚姻和家庭说明</dt>
+          <dd class="text-slate-900">{{ customer.marital_family_note|default:"—" }}</dd>
+        </div>
+        <div class="sm:col-span-2">
+          <dt class="label">一般备注</dt>
+          <dd class="whitespace-pre-line text-slate-900">{{ customer.notes|default:"—" }}</dd>
+        </div>
+      </dl>
+    </section>
+
+    {# 区块占位（T5-T8 填充） #}
+    <section class="card">
+      <h2 class="text-body font-semibold text-slate-900">时间线</h2>
+      <p class="mt-2 text-body-sm text-slate-500">时间线将在后续版本显示（工作事件、沟通记录聚合）。</p>
+    </section>
+
+    <section class="card">
+      <h2 class="text-body font-semibold text-slate-900">保单 · 理赔 · 待办</h2>
+      <p class="mt-2 text-body-sm text-slate-500">保单 / 理赔 / 待办 将在后续版本显示。</p>
+    </section>
+  </div>
+{% endblock %}
+
+{% block right_sidebar %}
+  <div class="space-y-4">
+    {# 状态卡 #}
+    <section class="card">
+      <h2 class="mb-3 text-body-sm font-semibold text-slate-900">状态</h2>
+      <dl class="space-y-2.5 text-body-sm">
+        <div class="flex items-center justify-between gap-3">
+          <dt class="text-slate-500">状态</dt>
+          <dd>{% include "customers/_status_badge.html" with status=customer.status %}</dd>
+        </div>
+        <div class="flex items-center justify-between gap-3">
+          <dt class="text-slate-500">优先级</dt>
+          <dd class="font-medium text-slate-900">{{ customer.get_priority_display }}</dd>
+        </div>
+        <div class="flex items-center justify-between gap-3">
+          <dt class="text-slate-500">负责人</dt>
+          <dd class="truncate text-slate-900">{{ customer.owner|default:"未分配" }}</dd>
+        </div>
+        <div class="flex items-center justify-between gap-3">
+          <dt class="text-slate-500">创建人</dt>
+          <dd class="truncate text-slate-900">{{ customer.created_by|default:"—" }}</dd>
+        </div>
+        <div class="flex items-center justify-between gap-3">
+          <dt class="text-slate-500">创建时间</dt>
+          <dd class="text-slate-900">{{ customer.created_at|date:"Y-m-d H:i" }}</dd>
+        </div>
+        <div class="flex items-center justify-between gap-3">
+          <dt class="text-slate-500">修改时间</dt>
+          <dd class="text-slate-900">{{ customer.updated_at|date:"Y-m-d H:i" }}</dd>
+        </div>
+      </dl>
+    </section>
+
+    {# 下一步卡 #}
+    <section class="card">
+      <h2 class="mb-3 text-body-sm font-semibold text-slate-900">下一步</h2>
+      {% if customer.next_followup_date %}
+        <p class="rounded-lg bg-brand-50 px-3 py-2.5 text-body font-semibold text-brand-700 ring-1 ring-inset ring-brand-200">
+          {{ customer.next_followup_date|date:"Y-m-d" }}
+        </p>
+        <p class="mt-2 text-body-sm text-slate-500">计划跟进日</p>
+      {% else %}
+        {% include "components/empty_state.html" with icon="calendar" title="暂未安排下一步" description="在编辑页设置下次跟进日期后会显示在这里。" %}
+      {% endif %}
+    </section>
+
+    {# 关系卡（T4.3：最近 5 条 + 查看全部） #}
+    {% relation_card customer %}
+
+    {# 标签卡 #}
+    <section class="card">
+      <h2 class="mb-3 text-body-sm font-semibold text-slate-900">标签</h2>
+      {% if customer.tags.all %}
+        <div class="flex flex-wrap gap-1.5">
+          {% for tag in customer.tags.all %}
+            <span class="badge-neutral">{{ tag.name }}</span>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-body-sm text-slate-400">暂无标签</p>
+      {% endif %}
+    </section>
+  </div>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% load perm_tags %}
+
+{% block title %}{{ customer.name }} 的关系 — 客迹 Keji{% endblock %}
+
+{# 左栏：返回客户列表 + 客户信息摘要 #}
+{% block sidebar %}
+  <div class="card space-y-3">
+    <a href="/customers/" class="nav-item">
+      <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path>
+      </svg>
+      返回客户列表
+    </a>
+    <div>
+      <h2 class="text-body-sm font-semibold text-slate-900">{{ customer.name }}</h2>
+      {% if customer.phone %}<p class="mt-1 text-body-sm text-slate-500">{{ customer.phone }}</p>{% endif %}
+      {% if customer.region %}<p class="mt-0.5 text-body-sm text-slate-500">{{ customer.region }}</p>{% endif %}
+    </div>
+  </div>
+{% endblock %}
+
+{% block content %}
+  <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+    <div>
+      <h1 class="text-xl font-semibold tracking-tight text-slate-900">{{ customer.name }} 的关系</h1>
+      <p class="mt-1 text-body-sm text-slate-500">出 / 入双向可见，删除后可在回收站恢复。</p>
+    </div>
+    {% has_perm 'can_manage_customers' as can_manage %}
+    {% if can_manage %}
+      <a href="{% url 'customers:relation_create' customer.pk %}" class="btn-primary">建立关系</a>
+    {% endif %}
+  </div>
+
+  {% if page_obj.object_list %}
+    <div class="card">
+      <ul class="divide-y divide-slate-100">
+        {% for relation in page_obj.object_list %}
+          {% include "customers/_relation_item.html" with relation=relation %}
+        {% endfor %}
+      </ul>
+    </div>
+    {% include "components/pagination.html" with page_obj=page_obj %}
+  {% else %}
+    {% include "components/empty_state.html" with icon="users" title="暂无关系" description="还没有与其他客户建立关系，点击右上角「建立关系」开始。" %}
+  {% endif %}
+{% endblock %}
+
+{# 右栏：最近 5 条关系卡（与详情页右栏一致的组件） #}
+{% block right_sidebar %}
+  {% include "customers/_relation_card.html" %}
+{% endblock %}

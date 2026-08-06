@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}建立关系 — {{ customer.name }} — 客迹 Keji{% endblock %}
+
+{% block content %}
+  <div class="mx-auto max-w-2xl">
+    <a href="{% url 'customers:relation_list' customer.pk %}"
+       class="nav-item mb-4 w-fit">
+      <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path>
+      </svg>
+      返回 {{ customer.name }} 的关系
+    </a>
+
+    <div class="card">
+      <h1 class="text-xl font-semibold tracking-tight text-slate-900">建立客户关系</h1>
+      <p class="mt-1 text-body-sm text-slate-500">以「{{ customer.name }}」为发起方，与另一位客户建立关系。</p>
+
+      {% if form.non_field_errors %}
+        <div class="mt-4 rounded-lg border border-red-200 bg-red-50 px-3.5 py-2.5 text-body-sm text-red-800" role="alert">
+          {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+        </div>
+      {% endif %}
+
+      <form method="post" class="mt-5 space-y-4">
+        {% csrf_token %}
+
+        {# 对方客户：Alpine 按姓名过滤的可选列表 #}
+        <div>
+          <span class="label">对方客户</span>
+          <div x-data="{ q: '' }">
+            <input type="search" x-model="q" class="input" placeholder="输入姓名搜索对方客户…"
+                   aria-label="搜索对方客户">
+            {% if form.to_customer.errors %}
+              <p class="mt-1 text-body-sm text-red-600">{{ form.to_customer.errors.0 }}</p>
+            {% endif %}
+            <div class="mt-2 max-h-48 overflow-y-auto rounded-lg border border-slate-200">
+              {% for c in customers %}
+                <label class="flex cursor-pointer items-center gap-2 px-3 py-2 hover:bg-slate-50"
+                       x-show="!q || '{{ c.name|escapejs }}'.includes(q)">
+                  <input type="radio" name="to_customer" value="{{ c.pk }}"
+                         class="h-4 w-4 shrink-0"
+                         {% if form.to_customer.value|stringformat:"s" == c.pk|stringformat:"s" %}checked{% endif %}>
+                  <span class="text-body-sm font-medium text-slate-700">{{ c.name }}</span>
+                </label>
+              {% empty %}
+                <p class="px-3 py-2 text-body-sm text-slate-500">暂无其他客户。</p>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+
+        {# 关系类型 + 自定义名称（Alpine 条件显示） #}
+        <div x-data="{ type: '{{ form.relation_type.value|default:'spouse' }}' }">
+          <label for="id_relation_type" class="label">关系类型</label>
+          <select name="relation_type" id="id_relation_type" x-model="type" class="input">
+            {% for value, label in form.fields.relation_type.choices %}
+              <option value="{{ value }}"
+                      {% if form.relation_type.value == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+          {% if form.relation_type.errors %}
+            <p class="mt-1 text-body-sm text-red-600">{{ form.relation_type.errors.0 }}</p>
+          {% endif %}
+
+          <div x-show="type === 'custom'" x-cloak x-transition class="mt-2">
+            <label for="id_custom_label" class="label">自定义关系名称</label>
+            <input type="text" name="custom_label" id="id_custom_label"
+                   value="{{ form.custom_label.value|default:'' }}" class="input"
+                   placeholder="如：大学同学 / 老邻居">
+            {% if form.custom_label.errors %}
+              <p class="mt-1 text-body-sm text-red-600">{{ form.custom_label.errors.0 }}</p>
+            {% endif %}
+          </div>
+        </div>
+
+        {# 备注 #}
+        <div>
+          <label for="id_note" class="label">备注</label>
+          <textarea name="note" id="id_note" rows="3" class="input"
+                    placeholder="可选，补充说明">{{ form.note.value|default:"" }}</textarea>
+          {% if form.note.errors %}
+            <p class="mt-1 text-body-sm text-red-600">{{ form.note.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+        <div class="flex items-center gap-3 pt-1">
+          <button type="submit" class="btn-primary">建立关系</button>
+          <a href="{% url 'customers:relation_list' customer.pk %}" class="btn-secondary">取消</a>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}

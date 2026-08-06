@@ -1,0 +1,39 @@
+{% comment %}
+工作事件卡片：单条工作事件的展示。可在列表页与后续客户详情时间线复用。
+参数：event — WorkEvent 实例（建议 select_related("customer")）。
+{% endcomment %}
+<article class="card p-4">
+  <div class="flex flex-wrap items-start justify-between gap-3">
+    <div class="min-w-0 flex-1">
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="rounded-full bg-brand-50 px-2.5 py-0.5 text-body-sm font-medium text-brand-700 ring-1 ring-inset ring-brand-200">{{ event.get_event_type_display }}</span>
+        <h3 class="text-body font-semibold text-slate-900">{{ event.title }}</h3>
+      </div>
+      <p class="mt-1 text-body-sm text-slate-500">
+        <a href="/customers/{{ event.customer.pk }}/" class="text-brand-700 hover:underline">{{ event.customer.name }}</a>
+        · {{ event.occurred_at|date:"Y-m-d H:i" }}
+      </p>
+    </div>
+    {% if can_manage %}
+      <div class="flex shrink-0 items-center gap-2">
+        <a href="{% url 'activities:work_event_edit' event.pk %}" class="btn-secondary btn-sm">编辑</a>
+        <form method="post" action="{% url 'activities:work_event_delete' event.pk %}" onsubmit="return confirm('确定删除这条工作事件吗？')">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-sm border border-red-200 text-red-600 hover:bg-red-50">删除</button>
+        </form>
+      </div>
+    {% endif %}
+  </div>
+  {% if event.summary %}
+    <p class="mt-2 text-body-sm leading-relaxed text-slate-600">{{ event.summary|linebreaksbr }}</p>
+  {% endif %}
+  {% if event.outcome %}
+    <p class="mt-1.5 text-body-sm text-slate-600"><span class="font-medium text-slate-700">结果：</span>{{ event.outcome }}</p>
+  {% endif %}
+  {% if event.next_step %}
+    <p class="mt-1.5 text-body-sm text-slate-600"><span class="font-medium text-slate-700">下一步：</span>{{ event.next_step }}</p>
+  {% endif %}
+  {% if event.next_followup_date %}
+    <p class="mt-1.5 text-body-sm text-slate-500"><span class="font-medium text-slate-700">下次跟进：</span>{{ event.next_followup_date|date:"Y-m-d" }}</p>
+  {% endif %}
+</article>

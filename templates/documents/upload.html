@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}上传文件 — 客迹 Keji{% endblock %}
+
+{% block content %}
+  <div class="mx-auto max-w-2xl">
+    <h1 class="mb-4 text-xl font-semibold tracking-tight text-slate-900">上传文件</h1>
+
+    <form method="post" enctype="multipart/form-data" class="space-y-6">
+      {% csrf_token %}
+
+      <section class="card space-y-4">
+        <h2 class="text-body font-semibold text-slate-900">选择文件</h2>
+        <div>
+          <label for="files" class="label">文件（可多选）</label>
+          <input
+            type="file"
+            id="files"
+            name="files"
+            multiple
+            accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.mp4,.mov,.mp3,.m4a,.heic,.heif"
+            capture="environment"
+            class="input py-2">
+          <p class="mt-1 text-body-sm text-slate-400">
+            支持图片（JPG/PNG/GIF/WebP/HEIC/HEIF）、PDF、Office 文档、CSV、视频与音频；单文件上限 100MB。
+          </p>
+        </div>
+      </section>
+
+      <section class="card space-y-4">
+        <h2 class="text-body font-semibold text-slate-900">关联信息（可选）</h2>
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <label for="customers" class="label">关联客户</label>
+            <select id="customers" name="customers" multiple size="4" class="input">
+              {% for customer in customers %}
+                <option value="{{ customer.id }}">{{ customer.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label for="albums" class="label">关联相册</label>
+            <select id="albums" name="albums" multiple size="4" class="input">
+              {% for album in albums %}
+                <option value="{{ album.id }}">{{ album.name }}（{{ album.get_category_display }}）</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label for="title" class="label">标题</label>
+          <input type="text" id="title" name="title" class="input" maxlength="255" placeholder="选填">
+        </div>
+
+        <div>
+          <label for="note" class="label">备注</label>
+          <textarea id="note" name="note" rows="2" class="input" placeholder="选填"></textarea>
+        </div>
+
+        <div>
+          <span class="label">敏感级别</span>
+          <div class="grid grid-cols-1 gap-2 sm:grid-cols-3">
+            {% for value, label in sensitivity_choices %}
+              <label class="flex items-center gap-2">
+                <input type="radio" name="sensitivity" value="{{ value }}"
+                       {% if forloop.first %}checked{% endif %}
+                       class="h-4 w-4 border-slate-300 text-brand-600 focus:ring-brand-500">
+                <span class="text-body-sm text-slate-700">{{ label }}</span>
+              </label>
+            {% endfor %}
+          </div>
+        </div>
+      </section>
+
+      <div class="flex items-center justify-end gap-3">
+        <a href="{% url 'documents:document_list' %}" class="btn-secondary">取消</a>
+        <button type="submit" class="btn-primary">上传</button>
+      </div>
+    </form>
+  </div>
+{% endblock %}

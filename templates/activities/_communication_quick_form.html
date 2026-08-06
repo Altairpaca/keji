@@ -1,0 +1,29 @@
+{% comment %}
+快捷沟通表单 partial：内嵌到客户详情页（T5.2），HTMX POST 到 communication_quick。
+成功时返回新沟通卡片；失败时本 partial 由 hx-swap 替换为带错误的表单。
+{% endcomment %}
+<form method="post"
+      action="{% url 'activities:communication_quick' %}"
+      hx-post="{% url 'activities:communication_quick' %}"
+      hx-target="#communication-list"
+      hx-swap="afterbegin"
+      class="card space-y-3 p-4">
+  {% csrf_token %}
+  <h2 class="text-body font-semibold text-slate-900">记录沟通</h2>
+
+  {% for field in form %}
+    {% if field.name == "customer" and customer %}
+      {{ field.as_hidden }}
+    {% else %}
+      <div>
+        <label for="{{ field.id_for_label }}" class="label">{{ field.label }}</label>
+        {{ field }}
+        {% for error in field.errors %}
+          <p class="mt-1 text-body-sm text-red-600">{{ error }}</p>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endfor %}
+
+  <button type="submit" class="btn-primary w-full">保存沟通记录</button>
+</form>
