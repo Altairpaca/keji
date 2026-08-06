@@ -1,0 +1,42 @@
+{% comment %}
+分页组件：基于 page_obj（django.core.paginator.Page 实例）。
+桌面显示上一页 / 页码 / 下一页，手机端紧凑（上一页 / 第 x 页 / 下一页）。
+
+用法：
+  {% include "components/pagination.html" with page_obj=page_obj extra_query=extra_query %}
+
+参数：
+  page_obj    — 分页对象（必填，页面未分页时可不 include 本组件）
+  extra_query — 附加查询串（如 "&q=abc"），翻页时保留筛选条件，可选
+{% endcomment %}
+{% if page_obj and page_obj.paginator.num_pages > 1 %}
+  <nav class="mt-6 flex items-center justify-between gap-3" aria-label="分页">
+    {% if page_obj.has_previous %}
+      <a href="?page={{ page_obj.previous_page_number }}{{ extra_query }}" class="btn-secondary btn-sm">上一页</a>
+    {% else %}
+      <span class="btn btn-sm cursor-not-allowed border border-slate-200 bg-slate-50 text-slate-300">上一页</span>
+    {% endif %}
+
+    {# 桌面：页码 #}
+    <div class="hidden items-center gap-1 sm:flex">
+      {% for num in page_obj.paginator.page_range %}
+        {% if num == page_obj.number %}
+          <span class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-brand-600 text-body-sm font-medium text-white" aria-current="page">{{ num }}</span>
+        {% elif num == 1 or num == page_obj.paginator.num_pages or num >= page_obj.number|add:"-2" and num <= page_obj.number|add:"2" %}
+          <a href="?page={{ num }}{{ extra_query }}" class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-body-sm font-medium text-slate-600 transition-colors hover:bg-slate-100">{{ num }}</a>
+        {% elif num == 2 or num == page_obj.paginator.num_pages|add:"-1" %}
+          <span class="inline-flex h-9 w-9 items-center justify-center text-body-sm text-slate-400">…</span>
+        {% endif %}
+      {% endfor %}
+    </div>
+
+    {# 手机：紧凑 #}
+    <span class="text-body-sm text-slate-500 sm:hidden">第 {{ page_obj.number }} / {{ page_obj.paginator.num_pages }} 页</span>
+
+    {% if page_obj.has_next %}
+      <a href="?page={{ page_obj.next_page_number }}{{ extra_query }}" class="btn-secondary btn-sm">下一页</a>
+    {% else %}
+      <span class="btn btn-sm cursor-not-allowed border border-slate-200 bg-slate-50 text-slate-300">下一页</span>
+    {% endif %}
+  </nav>
+{% endif %}

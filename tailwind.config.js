@@ -28,6 +28,9 @@ module.exports = {
     "badge-success",
     "input",
     "label",
+    "btn-sm",
+    "nav-item",
+    "nav-item-active",
   ],
   theme: {
     extend: {

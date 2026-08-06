@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}我的 — 客迹 Keji{% endblock %}
+
+{% block content %}
+  <div class="mx-auto max-w-2xl">
+    <h1 class="mb-4 text-xl font-semibold tracking-tight text-slate-900">我的</h1>
+
+    <div class="card">
+      <div class="flex items-center gap-3 border-b border-slate-100 pb-4">
+        <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-700 ring-1 ring-inset ring-brand-200">
+          <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle>
+          </svg>
+        </span>
+        <div class="min-w-0">
+          <p class="truncate text-body font-semibold text-slate-900">{{ request.user.get_username }}</p>
+          <p class="mt-1">{% if request.user.is_superuser %}<span class="badge-brand">管理员</span>{% else %}<span class="badge-neutral">普通用户</span>{% endif %}</p>
+        </div>
+      </div>
+
+      <dl class="divide-y divide-slate-100">
+        <div class="flex items-center justify-between gap-4 py-3">
+          <dt class="text-body-sm text-slate-500">账号</dt>
+          <dd class="truncate text-body-sm font-medium text-slate-900">{{ request.user.username }}</dd>
+        </div>
+        <div class="flex items-center justify-between gap-4 py-3">
+          <dt class="text-body-sm text-slate-500">角色</dt>
+          <dd class="text-body-sm font-medium text-slate-900">{% if request.user.is_superuser %}管理员{% else %}普通用户{% endif %}</dd>
+        </div>
+        <div class="flex items-center justify-between gap-4 py-3">
+          <dt class="text-body-sm text-slate-500">权限位</dt>
+          <dd class="text-body-sm text-slate-400">11 项权限位展示将在 T3.x 提供</dd>
+        </div>
+      </dl>
+    </div>
+  </div>
+{% endblock %}

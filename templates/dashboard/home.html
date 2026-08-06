@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+
+{% block title %}首页 — 客迹 Keji{% endblock %}
+
+{% block content %}
+  <h1 class="mb-4 text-xl font-semibold tracking-tight text-slate-900">工作队列</h1>
+  {% include "components/empty_state.html" with icon="calendar" title="今天要处理的事会显示在这里" description="待办跟进、近期到期、待处理理赔会汇总到这里（T9.2 实现）" %}
+{% endblock %}

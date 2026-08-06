@@ -11,6 +11,13 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  /* Alpine 初始化前隐藏 x-cloak 元素（配合 x-show 指令使用） */
+  [x-cloak] {
+    display: none !important;
+  }
+}
+
 @layer components {
   /* 按钮：主按钮 / 次要按钮 / 危险按钮三档 */
   .btn {
@@ -25,6 +32,11 @@
   }
   .btn-danger {
     @apply btn bg-red-600 text-white hover:bg-red-700 active:bg-red-800;
+  }
+
+  /* 小号按钮：分页等紧凑场景 */
+  .btn-sm {
+    @apply btn px-3 py-1.5 text-body-sm;
   }
 
   /* 卡片：客户卡片 / 摘要卡片通用容器 */
@@ -57,5 +69,13 @@
   /* 表单标签 */
   .label {
     @apply mb-1 block text-body-sm font-medium text-slate-700;
+  }
+
+  /* 导航项：用户菜单 / 侧栏导航通用行 */
+  .nav-item {
+    @apply flex w-full items-center gap-2 rounded-lg px-3 py-2 text-body-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900;
+  }
+  .nav-item-active {
+    @apply bg-brand-50 text-brand-700 hover:bg-brand-50 hover:text-brand-700;
   }
 }
