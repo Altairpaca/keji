@@ -40,6 +40,7 @@ def _make_doc(uploader: User, sensitivity: str = "sensitive", suffix: str = "a")
     )
     return doc
 
+
 @pytest.fixture
 def uploader() -> User:
     u = User(

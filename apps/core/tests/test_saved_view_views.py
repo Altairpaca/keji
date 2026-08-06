@@ -36,9 +36,7 @@ def plain() -> User:
     return u
 
 
-def _save_post(
-    client: Any, viewer: User, name: str, filters: Mapping[str, object]
-) -> None:
+def _save_post(client: Any, viewer: User, name: str, filters: Mapping[str, object]) -> None:
     client.force_login(viewer)
     client.post(
         reverse("core:saved_view_save"),
@@ -78,9 +76,7 @@ def test_save_view_same_name_overwrites(client: Any, viewer: User) -> None:
 
 
 @pytest.mark.django_db
-def test_apply_view_redirects_to_customer_list_with_filters(
-    client: Any, viewer: User
-) -> None:
+def test_apply_view_redirects_to_customer_list_with_filters(client: Any, viewer: User) -> None:
     _save_post(client, viewer, "张状态", {"q": "张", "status": "st-123", "tag": ["t1", "t2"]})
 
     client.force_login(viewer)
