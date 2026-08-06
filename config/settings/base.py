@@ -112,6 +112,24 @@ DATABASES: dict[str, dict[str, object]] = {
 
 AUTH_USER_MODEL: str = "accounts.User"
 
+# 登录限流（.env 格式 "5/15m"，单位支持 s/m/h；django-axes 风格，见 .env.example）。
+_LOGIN_RATE_LIMIT_RAW: str = os.environ.get("LOGIN_RATE_LIMIT", "5/15m")
+
+
+def _parse_rate_limit(raw: str) -> tuple[int, int]:
+    """解析 "5/15m" → (5, 900)。窗口单位支持 s / m / h。"""
+    attempts, window = raw.split("/")
+    value, unit = int(window[:-1]), window[-1]
+    multiplier = {"s": 1, "m": 60, "h": 3600}[unit]
+    return int(attempts), value * multiplier
+
+
+LOGIN_RATE_LIMIT_MAX_ATTEMPTS: int
+LOGIN_RATE_LIMIT_WINDOW_SECONDS: int
+LOGIN_RATE_LIMIT_MAX_ATTEMPTS, LOGIN_RATE_LIMIT_WINDOW_SECONDS = _parse_rate_limit(
+    _LOGIN_RATE_LIMIT_RAW
+)
+
 # ---------------------------------------------------------------------------
 # 国际化（面向台湾繁体用户，中文后端）
 # ---------------------------------------------------------------------------
