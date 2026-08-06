@@ -1,0 +1,28 @@
+# Development-only PostgreSQL 17 container.
+#
+# WARNING: dev-only credentials. Never use this configuration in production.
+# Production should pin image digests and use a secrets manager.
+services:
+  db:
+    image: postgres:17
+    # NOTE: dev image is not digest-pinned for easy updates.
+    # Pin a digest (e.g. postgres:17@sha256:...) before any production use.
+    container_name: keji-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: keji
+      POSTGRES_USER: keji
+      POSTGRES_PASSWORD: keji
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U keji"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+volumes:
+  db-data:
