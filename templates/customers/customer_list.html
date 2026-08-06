@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}客户 — 客迹 Keji{% endblock %}
+
+{# 左栏：搜索 + 筛选占位（真实查询由 T4.2 实现） #}
+{% block sidebar %}
+  <div class="card">
+    <h2 class="mb-3 text-body-sm font-semibold text-slate-900">筛选</h2>
+    <form method="get" class="space-y-3">
+      <div>
+        <label for="q" class="label">搜索</label>
+        <input type="search" id="q" name="q" placeholder="姓名 / 手机号 / 标签" class="input">
+      </div>
+      <div>
+        <label for="tag" class="label">标签</label>
+        <select id="tag" name="tag" class="input">
+          <option value="">全部标签</option>
+        </select>
+      </div>
+      <button type="submit" class="btn-secondary w-full">筛选</button>
+    </form>
+  </div>
+{% endblock %}
+
+{% block content %}
+  <h1 class="mb-4 text-xl font-semibold tracking-tight text-slate-900">客户列表</h1>
+  {% include "components/empty_state.html" with icon="users" title="还没有客户" description="客户档案、标签与关系图谱会显示在这里（T4.2 实现）" %}
+{% endblock %}
+
+{# 右栏：客户摘要占位（T4.2 实现） #}
+{% block right_sidebar %}
+  <div class="card">
+    <h2 class="text-body-sm font-semibold text-slate-900">客户摘要</h2>
+    <p class="mt-2 text-body-sm leading-relaxed text-slate-500">选中客户后，基本信息、标签与最近动态会显示在这里。</p>
+  </div>
+{% endblock %}

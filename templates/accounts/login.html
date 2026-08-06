@@ -1,33 +1,48 @@
-{% extends "base.html" %}
-
-{% block title %}登录 — 客迹 Keji{% endblock %}
-
-{% block content %}
-  <div class="flex min-h-screen items-center justify-center px-4">
-    <div class="card w-full max-w-sm">
-      <div class="mb-6 text-center">
+{% load static %}<!doctype html>
+{# 登录页独立布局：不继承 base.html（无需三栏 / 导航），全屏居中卡片 #}
+<html lang="zh-Hans">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>登录 — 客迹 Keji</title>
+    <link rel="stylesheet" href="{% static 'css/tailwind.css' %}">
+  </head>
+  <body class="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-12 text-slate-900 antialiased">
+    <div class="w-full max-w-sm">
+      <div class="mb-8 text-center">
+        <span class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-brand-600 text-xl font-semibold text-white">客</span>
         <h1 class="text-2xl font-semibold tracking-tight text-slate-900">客迹 Keji</h1>
-        <p class="mt-1 text-body-sm text-slate-500">客户工作档案系统</p>
+        <p class="mt-1.5 text-body-sm text-slate-500">自托管客户工作档案系统</p>
       </div>
 
-      {# 登录表单占位：完整认证流程由后续里程碑实现（T3.2） #}
-      <form method="post" action="{% url 'accounts:login' %}" class="space-y-4">
+      {% if form.errors %}
+        <div class="mb-4 rounded-lg border border-red-200 bg-red-50 px-3.5 py-2.5 text-body-sm text-red-800" role="alert">
+          <p class="font-medium">无法登录</p>
+          {% for field, errors in form.errors.items %}
+            {% for error in errors %}
+              <p class="mt-1">{{ error }}</p>
+            {% endfor %}
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <form method="post" action="{% url 'accounts:login' %}" class="card space-y-4">
+        {% csrf_token %}
+        {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
         <div>
           <label for="id_username" class="label">账号</label>
-          <input type="text" id="id_username" name="username" autocomplete="username"
+          <input type="text" id="id_username" name="username" autocomplete="username" autofocus required
                  class="input" placeholder="请输入账号">
         </div>
         <div>
           <label for="id_password" class="label">密码</label>
-          <input type="password" id="id_password" name="password" autocomplete="current-password"
+          <input type="password" id="id_password" name="password" autocomplete="current-password" required
                  class="input" placeholder="请输入密码">
         </div>
         <button type="submit" class="btn-primary w-full">登 录</button>
       </form>
 
-      <p class="mt-6 text-center text-body-sm text-slate-400">
-        登录功能将在后续里程碑实现
-      </p>
+      <p class="mt-6 text-center text-body-sm text-slate-400">数据保存在你自己的服务器上</p>
     </div>
-  </div>
-{% endblock %}
+  </body>
+</html>

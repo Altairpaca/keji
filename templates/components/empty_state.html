@@ -1,0 +1,37 @@
+{% comment %}
+空状态组件：居中图标 + 标题 + 描述 + 可选操作按钮。无业务逻辑，纯展示壳。
+
+用法：
+  {% include "components/empty_state.html" with icon="users" title="还没有客户" description="..." action_url="..." action_label="..." %}
+
+参数：
+  icon         — users / inbox / calendar / doc / check / search / upload，默认 inbox
+  title        — 主标题（必填）
+  description  — 辅助说明（可选）
+  action_url   — 操作按钮链接（可选）
+  action_label — 按钮文案（可选，默认「开始」）
+{% endcomment %}
+<div class="flex flex-col items-center justify-center px-4 py-14 text-center">
+  <div class="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-slate-400 ring-1 ring-inset ring-slate-200">
+    <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      {% if icon == "users" %}
+        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+      {% elif icon == "calendar" %}
+        <rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" x2="16" y1="2" y2="6"></line><line x1="8" x2="8" y1="2" y2="6"></line><line x1="3" x2="21" y1="10" y2="10"></line>
+      {% elif icon == "doc" %}
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" x2="8" y1="13" y2="13"></line><line x1="16" x2="8" y1="17" y2="17"></line>
+      {% elif icon == "check" %}
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline>
+      {% elif icon == "search" %}
+        <circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path>
+      {% elif icon == "upload" %}
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" x2="12" y1="3" y2="15"></line>
+      {% else %}
+        <polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path>
+      {% endif %}
+    </svg>
+  </div>
+  <h2 class="text-lg font-semibold tracking-tight text-slate-900">{{ title }}</h2>
+  {% if description %}<p class="mt-1.5 max-w-sm text-body-sm leading-relaxed text-slate-500">{{ description }}</p>{% endif %}
+  {% if action_url %}<a href="{{ action_url }}" class="btn-primary mt-6">{{ action_label|default:"开始" }}</a>{% endif %}
+</div>
