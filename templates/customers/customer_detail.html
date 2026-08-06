@@ -185,15 +185,12 @@
       <section class="card">
         <h2 class="mb-3 text-body-sm font-semibold uppercase tracking-wide text-slate-400">上次发生什么</h2>
         {% if timeline_entries %}
-          <ul class="space-y-2.5">
-            {% for entry in timeline_entries %}
-              <li class="flex items-start gap-2.5">
+          <ul class="space-y-1.5">
+            {% for entry in timeline_entries|slice:":3" %}
+              <li class="flex items-center gap-2 rounded-lg bg-slate-50 px-2.5 py-1.5">
                 <span class="badge {{ entry.badge_class }} shrink-0">{{ entry.label }}</span>
-                <div class="min-w-0 flex-1">
-                  <p class="truncate text-body-sm font-medium text-slate-900">{{ entry.title }}</p>
-                  {% if entry.summary %}<p class="truncate text-body-sm text-slate-500">{{ entry.summary }}</p>{% endif %}
-                  <p class="text-xs text-slate-400">{{ entry.occurred_at|date:"m-d H:i" }}</p>
-                </div>
+                <span class="min-w-0 flex-1 truncate text-body-sm text-slate-900">{{ entry.title }}</span>
+                <span class="shrink-0 text-xs text-slate-400">{{ entry.occurred_at|date:"m-d" }}</span>
               </li>
             {% endfor %}
           </ul>
