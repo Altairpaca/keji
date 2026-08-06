@@ -52,33 +52,17 @@
 {% block content %}
   <div class="mb-4 flex items-center justify-between gap-3">
     <h1 class="text-xl font-semibold tracking-tight text-slate-900">文件</h1>
-    {% has_perm "can_manage_customers" as can_manage %}
-    {% if can_manage %}
-      <a href="{% url 'documents:upload' %}" class="btn-primary btn-sm">上传文件</a>
-    {% endif %}
+    <div class="flex shrink-0 items-center gap-2">
+      {% has_perm "can_manage_customers" as can_manage %}
+      <a href="{% url 'documents:duplicate_list' %}" class="btn-secondary btn-sm">重复文件</a>
+      {% if can_manage %}
+        <a href="{% url 'documents:upload' %}" class="btn-primary btn-sm">上传文件</a>
+      {% endif %}
+    </div>
   </div>
 
   {% if page_obj.object_list %}
-    <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-      {% for doc in page_obj.object_list %}
-        <a href="{% url 'documents:document_detail' doc.id %}"
-           class="card block p-3 transition-shadow hover:shadow-card">
-          <div class="flex h-24 items-center justify-center rounded-lg bg-slate-100 text-slate-400">
-            <svg class="h-10 w-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-              <polyline points="14 2 14 8 20 8"></polyline>
-            </svg>
-          </div>
-          <p class="mt-2 truncate text-body-sm font-medium text-slate-900" title="{{ doc.original_name }}">{{ doc.original_name }}</p>
-          <p class="text-body-sm text-slate-400">
-            {{ doc.get_sensitivity_display }}
-            {% if doc.customers.all %}
-              · {% for customer in doc.customers.all %}{{ customer.name }}{% if not forloop.last %}/{% endif %}{% endfor %}
-            {% endif %}
-          </p>
-        </a>
-      {% endfor %}
-    </div>
+    {% include "documents/_document_grid.html" with docs=page_obj.object_list can_manage=can_manage %}
     {% include "components/pagination.html" with page_obj=page_obj extra_query=extra_query %}
   {% else %}
     {% include "components/empty_state.html" with icon="doc" title="还没有文件" description="通过「上传文件」把客户证件、保单、理赔材料拍照归档。" %}

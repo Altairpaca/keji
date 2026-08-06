@@ -8,6 +8,7 @@ relation_list / relation_create / relation_delete；标签管理 tags/*、
 from django.urls import path
 
 from apps.customers.views import duplicates as duplicate_views
+from apps.customers.views import graph as graph_views
 from apps.customers.views import relations as relation_views
 from apps.customers.views import tags as tag_views
 from apps.customers.views.customers import (
@@ -52,4 +53,15 @@ urlpatterns = [
     path("duplicates/", duplicate_views.duplicate_list, name="duplicate_list"),
     path("merge/", duplicate_views.merge_confirm, name="merge_confirm"),
     path("merge/do/", duplicate_views.merge_do, name="merge_do"),
+    # 关系图 JSON API（T12.1 / ADR-010，vis-network 消费）
+    path(
+        "<uuid:pk>/graph/",
+        graph_views.relationship_graph_data,
+        name="relationship_graph",
+    ),
+    path(
+        "<uuid:pk>/referral-graph/",
+        graph_views.referral_graph_data,
+        name="referral_graph",
+    ),
 ]

@@ -28,6 +28,8 @@ module.exports = {
     "badge-success",
     "badge-warning",
     "badge-danger",
+    "badge-cyan",
+    "badge-purple",
     "input",
     "label",
     "btn-sm",

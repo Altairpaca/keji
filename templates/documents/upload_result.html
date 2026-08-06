@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}上传结果 — 客迹 Keji{% endblock %}
+
+{% block content %}
+  <div
+    id="upload-result"
+    class="mx-auto w-full max-w-2xl px-4 pb-12 pt-6 sm:px-6"
+    data-success="{{ success_count }}"
+    data-skipped="{{ duplicate_count }}"
+    data-failed="{{ failed|length }}">
+
+    <header class="mb-6">
+      <h1 class="text-xl font-semibold tracking-tight text-slate-900">上传结果</h1>
+      <p class="mt-1 text-body-sm text-slate-500">逐文件处理完成；同内容文件按 SHA-256 去重，自动跳过</p>
+    </header>
+
+    <section class="card space-y-4">
+      <div class="grid grid-cols-3 gap-3 text-center">
+        <div class="rounded-xl bg-emerald-50 p-3">
+          <div class="text-2xl font-bold text-emerald-700">{{ success_count }}</div>
+          <div class="text-body-sm text-emerald-600">成功</div>
+        </div>
+        <div class="rounded-xl bg-amber-50 p-3">
+          <div class="text-2xl font-bold text-amber-700">{{ duplicate_count }}</div>
+          <div class="text-body-sm text-amber-600">已跳过（重复）</div>
+        </div>
+        <div class="rounded-xl bg-rose-50 p-3">
+          <div class="text-2xl font-bold text-rose-700">{{ failed|length }}</div>
+          <div class="text-body-sm text-rose-600">失败</div>
+        </div>
+      </div>
+
+      {% if failed %}
+        <div class="rounded-xl border border-rose-200 bg-rose-50/60 p-4">
+          <h2 class="mb-2 text-body font-semibold text-rose-800">请重新选择以下文件</h2>
+          <ul class="space-y-1.5">
+            {% for item in failed %}
+              <li class="text-body-sm text-rose-700">{{ item }}</li>
+            {% endfor %}
+          </ul>
+          <p class="mt-3 text-body-sm text-rose-500">
+            已成功上传的文件若再次选择会被自动跳过，不会重复入库。
+          </p>
+        </div>
+      {% endif %}
+    </section>
+
+    <div class="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <a href="{% url 'documents:upload' %}" class="btn-primary flex h-12 items-center justify-center">
+        重新选择并上传
+      </a>
+      <a href="{% url 'documents:document_list' %}" class="btn-secondary flex h-12 items-center justify-center">
+        返回文件列表
+      </a>
+    </div>
+  </div>
+{% endblock %}

@@ -15,6 +15,12 @@ def isolated_storage(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> LocalDi
     monkeypatch 使测试不触碰真实 MEDIA_ROOT。
     """
     backend = LocalDiskStorage(root=tmp_path)
-    for module_name in ("apps.documents.services.files", "apps.documents.views"):
+    for module_name in (
+        "apps.documents.services.files",
+        "apps.documents.services.thumbnails",
+        "apps.documents.services.recycle",
+        "apps.documents.views",
+        "apps.documents.views_viewer",
+    ):
         monkeypatch.setattr(f"{module_name}.default_storage", backend)
     return backend

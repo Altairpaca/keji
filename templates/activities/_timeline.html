@@ -1,0 +1,33 @@
+{% comment %}
+客户统一时间线 partial（T5.2）：类型徽标 + 标题 + 时间 + 摘要的卡片列表。
+用于客户详情页中栏首屏（{% load activities_tags %}{% timeline_block customer %}）
+与 HTMX 局部刷新（activities:customer_timeline 视图，直接渲染本文件）。
+空数据显示空状态组件。
+
+参数：items — list[dict]，含 type / label / badge_class / title / occurred_at /
+summary / url / customer_pk。
+{% endcomment %}
+{% if items %}
+  <ol class="space-y-3">
+    {% for item in items %}
+      <li>
+        <article class="card p-4">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="{{ item.badge_class }}">{{ item.label }}</span>
+            {% if item.url %}
+              <a href="{{ item.url }}" class="text-body font-semibold text-slate-900 hover:text-brand-700">{{ item.title }}</a>
+            {% else %}
+              <h3 class="text-body font-semibold text-slate-900">{{ item.title }}</h3>
+            {% endif %}
+            <time class="ml-auto shrink-0 text-body-sm text-slate-400" datetime="{{ item.occurred_at|date:'c' }}">{{ item.occurred_at|date:"Y-m-d H:i" }}</time>
+          </div>
+          {% if item.summary %}
+            <p class="mt-1.5 text-body-sm leading-relaxed text-slate-600">{{ item.summary|linebreaksbr }}</p>
+          {% endif %}
+        </article>
+      </li>
+    {% endfor %}
+  </ol>
+{% else %}
+  {% include "components/empty_state.html" with icon="calendar" title="暂无时间线记录" description="工作事件、沟通记录、待办与文件上传会在这里按时间汇总。" %}
+{% endif %}

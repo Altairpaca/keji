@@ -10,10 +10,20 @@
         {{ doc.title|default:doc.original_name }}
       </h1>
       {% has_perm "can_download_originals" as can_download %}
-      {% if can_download %}
+      {% if can_download and doc.sensitivity == "normal" or can_download and can_view_sensitive %}
         <a href="{% url 'documents:document_download' doc.id %}" class="btn-primary btn-sm shrink-0">下载原文件</a>
       {% endif %}
     </div>
+
+    {% if not can_view_sensitive and doc.sensitivity != "normal" and sensitive_blur_enabled %}
+      <div class="mb-4 flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-100 p-4 blur-sm" title="无查看敏感资料权限">
+        <svg class="h-6 w-6 shrink-0 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="3" y="11" width="18" height="11" rx="2"></rect>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+        </svg>
+        <p class="text-body-sm text-slate-600">无查看敏感资料权限</p>
+      </div>
+    {% endif %}
 
     <section class="card space-y-4">
       <h2 class="text-body font-semibold text-slate-900">文件信息</h2>

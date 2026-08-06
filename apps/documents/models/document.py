@@ -62,6 +62,12 @@ class Document(TimeStampedModel, UUIDModel, SoftDeleteModel):
     albums = models.ManyToManyField(
         Album, blank=True, related_name="documents", verbose_name="关联相册"
     )
+    policies = models.ManyToManyField(
+        "policies.Policy",
+        blank=True,
+        related_name="documents",
+        verbose_name="关联保单",
+    )
     thumb_storage_key = models.CharField(max_length=255, blank=True, verbose_name="缩略图存储键")
     thumb_mime = models.CharField(max_length=50, blank=True, verbose_name="缩略图 MIME")
 

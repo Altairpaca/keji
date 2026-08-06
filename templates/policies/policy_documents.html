@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}关联文件 — {{ policy.name }} — 客迹 Keji{% endblock %}
+
+{% block content %}
+  <div class="mx-auto w-full max-w-5xl px-4 pb-12 pt-6 sm:px-6">
+    <header class="mb-6 flex flex-wrap items-center justify-between gap-3">
+      <div>
+        <h1 class="text-xl font-semibold tracking-tight text-slate-900">关联文件</h1>
+        <p class="mt-1 text-body-sm text-slate-500">
+          <a href="{% url 'policies:policy_detail' policy.pk %}" class="text-brand-600 hover:underline">
+            {{ policy.insurer }} {{ policy.name }}
+          </a>
+          <span class="text-slate-400">（{{ documents|length }} 个文件）</span>
+        </p>
+      </div>
+      {% if can_manage %}
+        <a href="{% url 'policies:policy_document_attach' policy.pk %}" class="btn-primary">
+          关联文件
+        </a>
+      {% endif %}
+    </header>
+
+    {% if documents %}
+      <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+        {% for doc in documents %}
+          <div class="card relative p-3">
+            <a href="{% url 'documents:document_detail' doc.id %}" class="block">
+              <div class="flex h-24 items-center justify-center rounded-lg bg-slate-100 text-slate-400">
+                <svg class="h-10 w-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                </svg>
+              </div>
+            </a>
+            <p class="mt-2 truncate text-body-sm font-medium text-slate-900" title="{{ doc.original_name }}">
+              {{ doc.title|default:doc.original_name }}
+            </p>
+            <p class="text-body-sm text-slate-400">
+              {{ doc.size|filesizeformat }} · {{ doc.created_at|date:"Y-m-d H:i" }}
+            </p>
+            <p class="text-body-sm text-slate-400">{{ doc.get_sensitivity_display }}</p>
+            {% if can_manage %}
+              <form method="post" action="{% url 'policies:policy_document_detach' policy.pk doc.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="btn-sm mt-2 w-full border border-red-200 bg-red-50 text-red-700 hover:bg-red-100">
+                  移除
+                </button>
+              </form>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="card p-10 text-center">
+        <p class="text-body-sm text-slate-500">还没有关联文件</p>
+        {% if can_manage %}
+          <a href="{% url 'policies:policy_document_attach' policy.pk %}" class="btn-primary mt-4 inline-flex">
+            关联第一个文件
+          </a>
+        {% endif %}
+      </div>
+    {% endif %}
+  </div>
+{% endblock %}

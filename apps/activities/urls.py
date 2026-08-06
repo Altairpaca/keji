@@ -23,4 +23,9 @@ urlpatterns = [
         views.communication_delete,
         name="communication_delete",
     ),
+    path(
+        "customers/<uuid:customer_pk>/timeline/",
+        views.customer_timeline,
+        name="customer_timeline",
+    ),
 ]

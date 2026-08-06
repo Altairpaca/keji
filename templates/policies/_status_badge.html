@@ -1,0 +1,28 @@
+{% comment %}
+保单状态徽标：把 10 个保单状态映射到语义组件色。
+用法：{% include "policies/_status_badge.html" with policy=policy %}
+参数：policy — Policy 实例（取 status 定色、get_status_display 取标签）
+{% endcomment %}
+{% if policy.status == "active" %}
+  <span class="badge-success" data-testid="policy-status-badge">正常有效</span>
+{% elif policy.status == "paying" %}
+  <span class="badge-brand" data-testid="policy-status-badge">缴费中</span>
+{% elif policy.status == "paid_up" %}
+  <span class="badge-cyan" data-testid="policy-status-badge">已缴清</span>
+{% elif policy.status == "lapsed" %}
+  <span class="badge-danger" data-testid="policy-status-badge">失效</span>
+{% elif policy.status == "reinstating" %}
+  <span class="badge-warning" data-testid="policy-status-badge">复效处理中</span>
+{% elif policy.status == "surrendered" %}
+  <span class="badge-neutral" data-testid="policy-status-badge">退保</span>
+{% elif policy.status == "terminated" %}
+  <span class="badge-danger" data-testid="policy-status-badge">解约</span>
+{% elif policy.status == "matured" %}
+  <span class="badge-purple" data-testid="policy-status-badge">满期</span>
+{% elif policy.status == "claim_closed" %}
+  <span class="badge-success" data-testid="policy-status-badge">理赔结案</span>
+{% elif policy.status == "status_pending" %}
+  <span class="badge-warning" data-testid="policy-status-badge">状态待核实</span>
+{% else %}
+  <span class="badge-neutral" data-testid="policy-status-badge">未知状态</span>
+{% endif %}

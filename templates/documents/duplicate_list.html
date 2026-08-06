@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}重复文件 — 客迹 Keji{% endblock %}
+
+{% block content %}
+  <div class="mb-4 flex items-center justify-between gap-3">
+    <h1 class="text-xl font-semibold tracking-tight text-slate-900">重复文件</h1>
+    <a href="{% url 'documents:document_list' %}" class="btn-secondary btn-sm shrink-0">返回文件列表</a>
+  </div>
+
+  {% if groups %}
+    <p class="mb-4 text-body-sm text-slate-500">
+      共 {{ groups|length }} 组重复内容。同一内容的文件建议只保留一份（保留创建时间最新的一份）。
+    </p>
+    <div class="space-y-4">
+      {% for group in groups %}
+        <section class="card">
+          <div class="mb-2 flex items-center justify-between gap-3">
+            <h2 class="text-body font-semibold text-slate-900">重复组 {{ forloop.counter }}</h2>
+            <span class="badge badge-warning">{{ group.count }} 个文件</span>
+          </div>
+          <p class="mb-3 font-mono text-xs text-slate-400">SHA-256 {{ group.sha256|truncatechars:24 }}</p>
+          <div class="space-y-2">
+            {% for doc in group.docs %}
+              <div class="flex items-center justify-between gap-3 rounded-lg border border-slate-100 px-3 py-2">
+                <a href="{% url 'documents:document_detail' doc.id %}" class="min-w-0 truncate text-body-sm font-medium text-slate-900 hover:underline">{{ doc.original_name }}</a>
+                <div class="flex shrink-0 items-center gap-3 text-body-sm text-slate-400">
+                  <span>{{ doc.size|filesizeformat }}</span>
+                  <span>{{ doc.created_at|date:"Y-m-d H:i" }}</span>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+          <p class="mt-3 text-body-sm text-slate-500">
+            去重建议：保留 {{ group.docs.0.original_name }}，其余可删除。
+          </p>
+        </section>
+      {% endfor %}
+    </div>
+  {% else %}
+    {% include "components/empty_state.html" with icon="check" title="没有重复文件" description="所有文件的 SHA-256 均唯一，未发现重复内容。" %}
+  {% endif %}
+{% endblock %}

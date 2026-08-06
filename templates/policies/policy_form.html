@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} — 客迹 Keji{% endblock %}
+
+{% block content %}
+  <div class="mx-auto max-w-2xl">
+    <h1 class="mb-4 text-xl font-semibold tracking-tight text-slate-900">{{ title }}</h1>
+
+    {% if form.non_field_errors %}
+      <div class="mb-4 rounded-lg border border-red-200 bg-red-50 px-3.5 py-2.5 text-body-sm text-red-800" role="alert">
+        {% for error in form.non_field_errors %}
+          <p>{{ error }}</p>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <form method="post" class="space-y-6">
+      {% csrf_token %}
+      <section class="card space-y-4">
+        <h2 class="text-body font-semibold text-slate-900">保单资料</h2>
+        {% for field in form %}
+          <div>
+            <label for="{{ field.id_for_label }}" class="label">{{ field.label }}{% if field.field.required %}<span class="text-red-600"> *</span>{% endif %}</label>
+            {{ field }}
+            {% if field.help_text %}
+              <p class="mt-1 text-body-sm text-slate-400">{{ field.help_text }}</p>
+            {% endif %}
+            {% for error in field.errors %}
+              <p class="mt-1 text-body-sm text-red-600">{{ error }}</p>
+            {% endfor %}
+          </div>
+        {% endfor %}
+      </section>
+
+      <div class="flex items-center justify-end gap-3">
+        <a href="{% url 'policies:policy_list' %}" class="btn-secondary">取消</a>
+        <button type="submit" class="btn-primary">保存</button>
+      </div>
+    </form>
+  </div>
+{% endblock %}
