@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}导入结果 — 客迹 Keji{% endblock %}
+
+{% block content %}
+  <div class="space-y-6">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <h1 class="text-xl font-semibold tracking-tight text-slate-900">导入结果</h1>
+    </div>
+
+    <section class="card p-6">
+      <p class="text-body-sm text-slate-600">本次导入结果：成功 {{ report.imported }} 行，跳过 {{ report.skipped|length }} 行，失败 {{ report.failed|length }} 行。</p>
+
+      {% if report.failed %}
+        <div class="mt-5">
+          <h2 class="text-body font-semibold text-slate-900">失败明细</h2>
+          <div class="mt-2 overflow-x-auto">
+            <table class="w-full min-w-[480px] text-body-sm">
+              <thead>
+                <tr class="border-b border-slate-200 text-left text-slate-500">
+                  <th class="py-2 pr-4 font-medium">行号</th>
+                  <th class="py-2 pr-4 font-medium">姓名</th>
+                  <th class="py-2 font-medium">原因</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                {% for item in report.failed %}
+                  <tr class="text-slate-900">
+                    <td class="py-2 pr-4">{{ item.line_no|default:"—" }}</td>
+                    <td class="py-2 pr-4">{{ item.name|default:"—" }}</td>
+                    <td class="py-2 text-rose-600">{{ item.reason }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      {% endif %}
+
+      {% if report.skipped %}
+        <div class="mt-5">
+          <h2 class="text-body font-semibold text-slate-900">跳过明细（手机号重复）</h2>
+          <div class="mt-2 overflow-x-auto">
+            <table class="w-full min-w-[480px] text-body-sm">
+              <thead>
+                <tr class="border-b border-slate-200 text-left text-slate-500">
+                  <th class="py-2 pr-4 font-medium">行号</th>
+                  <th class="py-2 pr-4 font-medium">姓名</th>
+                  <th class="py-2 font-medium">原因</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                {% for item in report.skipped %}
+                  <tr class="text-slate-900">
+                    <td class="py-2 pr-4">{{ item.line_no }}</td>
+                    <td class="py-2 pr-4">{{ item.name }}</td>
+                    <td class="py-2 text-amber-600">{{ item.reason }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      {% endif %}
+
+      <div class="mt-6 flex items-center gap-3">
+        <a href="{% url 'customers:customer_list' %}" class="btn-primary">返回客户列表</a>
+        <a href="{% url 'customers:import_preview' %}" class="btn-secondary">继续导入</a>
+      </div>
+    </section>
+  </div>
+{% endblock %}

@@ -47,10 +47,17 @@
 {% block content %}
   <div class="mb-4 flex items-center justify-between gap-3">
     <h1 class="text-xl font-semibold tracking-tight text-slate-900">客户列表</h1>
-    {% has_perm "can_manage_customers" as can_manage %}
-    {% if can_manage %}
-      <a href="{% url 'customers:customer_create' %}" class="btn-primary btn-sm">新增客户</a>
-    {% endif %}
+    <div class="flex items-center gap-3">
+      {% has_perm "can_export_data" as can_export %}
+      {% if can_export %}
+        <a href="{% url 'export:customers' %}{{ export_query }}" class="btn-secondary btn-sm">导出当前筛选</a>
+      {% endif %}
+      {% has_perm "can_manage_customers" as can_manage %}
+      {% if can_manage %}
+        <a href="{% url 'customers:customer_create' %}" class="btn-primary btn-sm">新增客户</a>
+      {% endif %}
+      {% include "customers/_saved_views_bar.html" %}
+    </div>
   </div>
 
   {% if page_obj.object_list %}

@@ -19,10 +19,11 @@
 }
 
 @layer components {
-  /* 按钮：主按钮 / 次要按钮 / 危险按钮三档 */
+  /* 按钮：主按钮 / 次要按钮 / 危险按钮三档。
+   * 触控基线 44px（WCAG 2.5.8 / 规格 §19），桌面紧凑场景叠加 h-10 时由 min-height 兜底。 */
   .btn {
     @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
-    min-height: var(--spacing-touch-sm, 2.5rem);
+    min-height: var(--spacing-touch-sm, 2.75rem);
   }
   .btn-primary {
     @apply btn bg-brand-600 text-white hover:bg-brand-700 active:bg-brand-800;
@@ -73,9 +74,10 @@
     @apply badge bg-purple-50 text-purple-700 ring-1 ring-inset ring-purple-200;
   }
 
-  /* 表单输入：统一输入框 / 下拉 / 文本域外观 */
+  /* 表单输入：统一输入框 / 下拉 / 文本域外观（min-height 保证触控 ≥44px） */
   .input {
     @apply w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-body text-slate-900 placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30;
+    min-height: var(--spacing-touch-sm, 2.75rem);
   }
 
   /* 表单标签 */

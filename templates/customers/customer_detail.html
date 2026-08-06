@@ -204,5 +204,36 @@
         <p class="text-body-sm text-slate-400">暂无标签</p>
       {% endif %}
     </section>
+
+    {# 导出卡（规格 §16，需 can_export_data 权限位） #}
+    {% has_perm "can_export_data" as can_export %}
+    {% if can_export %}
+      <section class="card">
+        <h2 class="mb-3 text-body-sm font-semibold text-slate-900">导出</h2>
+        <div x-data="{ open: false }" class="relative">
+          <button type="button" @click="open = !open" @keydown.escape.window="open = false"
+                  class="btn-secondary btn-sm w-full justify-center" aria-haspopup="menu" :aria-expanded="open">
+            导出资料
+            <svg class="h-4 w-4 text-slate-400 transition-transform" :class="open && 'rotate-180'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="m6 9 6 6 6-6"></path>
+            </svg>
+          </button>
+          <div x-show="open" x-cloak @click.outside="open = false"
+               x-transition:enter="transition ease-out duration-100"
+               x-transition:enter-start="opacity-0 scale-95"
+               x-transition:enter-end="opacity-100 scale-100"
+               x-transition:leave="transition ease-in duration-75"
+               x-transition:leave-start="opacity-100 scale-100"
+               x-transition:leave-end="opacity-0 scale-95"
+               class="absolute right-0 z-50 mt-2 w-56 overflow-hidden rounded-card bg-white shadow-card ring-1 ring-slate-200/60" role="menu">
+            <div class="p-1">
+              <a href="{% url 'export:customer_profile' pk=customer.pk %}" role="menuitem" class="nav-item">档案摘要（CSV）</a>
+              <a href="{% url 'export:customer_timeline' pk=customer.pk %}" role="menuitem" class="nav-item">时间线（CSV）</a>
+              <a href="{% url 'export:customer_archive' pk=customer.pk %}" role="menuitem" class="nav-item">全部资料（ZIP）</a>
+            </div>
+          </div>
+        </div>
+      </section>
+    {% endif %}
   </div>
 {% endblock %}

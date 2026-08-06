@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}批量导入客户 — 客迹 Keji{% endblock %}
+
+{% block content %}
+  <div class="space-y-6">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <h1 class="text-xl font-semibold tracking-tight text-slate-900">批量导入客户</h1>
+      <a href="{% url 'customers:import_template' %}" class="btn-secondary btn-sm">下载 CSV 模板</a>
+    </div>
+
+    <section class="card p-6">
+      <p class="text-body-sm text-slate-600">
+        下载模板后按列填写：带 <span class="font-semibold text-red-600">*</span> 的「姓名」为必填，
+        「出生日期」与「年龄说明」至少填其一；手机号已存在的行会被自动跳过。
+        填写完成后上传 CSV（UTF-8 或 GBK 编码均可），先预览再确认导入。
+      </p>
+      <form method="post" action="{% url 'customers:import_preview' %}"
+            enctype="multipart/form-data" class="mt-4 space-y-4">
+        {% csrf_token %}
+        <div>
+          <label for="id_file" class="label">选择 CSV 文件</label>
+          <input type="file" name="file" id="id_file" required class="input"
+                 accept=".csv,text/csv,application/vnd.ms-excel">
+          <p class="mt-1 text-body-sm text-slate-400">文件不会立刻写入，预览确认后才真正导入。</p>
+        </div>
+        <button type="submit" class="btn-primary">预览</button>
+      </form>
+    </section>
+  </div>
+{% endblock %}

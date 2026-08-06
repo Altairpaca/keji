@@ -17,6 +17,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from apps.accounts.permissions import require_permission
+from apps.core.services.saved_views import list_views
 from apps.customers.forms import CustomerForm
 from apps.customers.models import Customer, CustomerStatus, Tag
 from apps.customers.services import (
@@ -81,7 +82,10 @@ def customer_list(request: HttpRequest) -> HttpResponse:
         "selected_status": status_id,
         "selected_tag_ids": tag_ids,
         "extra_query": extra_query,
+        # 导出链接附带当前筛选（同 extra_query，但以 ? 开头，排除 page）
+        "export_query": f"?{urlencode(extra_parts)}" if extra_parts else "",
         "total_count": Customer.objects.count(),
+        "saved_views": list_views(request.user, "customers", "customer"),
     }
     return render(request, "customers/customer_list.html", context)
 
