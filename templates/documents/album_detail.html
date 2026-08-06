@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load perm_tags %}
+
+{% block title %}{{ album.name }} — 客迹 Keji{% endblock %}
+
+{% block content %}
+  <div class="mb-4 flex items-center justify-between gap-3">
+    <div class="min-w-0">
+      <h1 class="truncate text-xl font-semibold tracking-tight text-slate-900">{{ album.name }}</h1>
+      <p class="mt-1 text-body-sm text-slate-500">
+        <span class="badge-neutral">{{ album.get_category_display }}</span>
+        {% if album.custom_category %}<span class="text-slate-400">· {{ album.custom_category }}</span>{% endif %}
+        {% if album.customer %}<span class="text-slate-400">· {{ album.customer.name }}</span>{% endif %}
+        {% if album.description %}<span class="mt-1 block text-slate-400">{{ album.description }}</span>{% endif %}
+      </p>
+    </div>
+    {% has_perm "can_manage_customers" as can_manage %}
+    {% if can_manage %}
+      <div class="flex shrink-0 items-center gap-2">
+        <a href="{% url 'documents:album_edit' album.id %}" class="btn-secondary btn-sm">编辑</a>
+        <form method="post" action="{% url 'documents:album_delete' album.id %}">
+          {% csrf_token %}
+          <button type="submit" class="btn-danger btn-sm">删除相册</button>
+        </form>
+      </div>
+    {% endif %}
+  </div>
+
+  {% if page_obj.object_list %}
+    {% include "documents/_document_grid.html" with docs=page_obj.object_list can_manage=can_manage %}
+    {% include "components/pagination.html" with page_obj=page_obj %}
+  {% else %}
+    {% url 'documents:upload' as upload_url %}
+    {% include "components/empty_state.html" with icon="doc" title="相册还是空的" description="上传文件时勾选该相册即可归入。" action_url=upload_url action_label="上传文件" %}
+  {% endif %}
+{% endblock %}

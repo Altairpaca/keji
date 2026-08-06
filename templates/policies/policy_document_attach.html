@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}关联文件 — {{ policy.name }} — 客迹 Keji{% endblock %}
+
+{% block content %}
+  <div class="mx-auto w-full max-w-3xl px-4 pb-12 pt-6 sm:px-6">
+    <header class="mb-6">
+      <h1 class="text-xl font-semibold tracking-tight text-slate-900">关联文件</h1>
+      <p class="mt-1 text-body-sm text-slate-500">
+        为「{{ policy.insurer }} {{ policy.name }}」关联已有文件，或上传新文件
+      </p>
+    </header>
+
+    <form method="post" enctype="multipart/form-data" class="grid grid-cols-1 gap-6">
+      {% csrf_token %}
+
+      <section class="card space-y-3">
+        <h2 class="text-body font-semibold text-slate-900">选择已有文件</h2>
+        <select name="document_pk" class="input">
+          <option value="">— 请选择文件 —</option>
+          {% for doc in documents %}
+            <option value="{{ doc.id }}">{{ doc.title|default:doc.original_name }}</option>
+          {% endfor %}
+        </select>
+        <p class="text-body-sm text-slate-400">可搜索；已删除（回收站）的文件不在此列</p>
+      </section>
+
+      <div class="flex items-center gap-3 text-body-sm text-slate-400">
+        <span class="h-px flex-1 bg-slate-200"></span>
+        或上传新文件
+        <span class="h-px flex-1 bg-slate-200"></span>
+      </div>
+
+      <section class="card space-y-4">
+        <h2 class="text-body font-semibold text-slate-900">上传新文件</h2>
+        <div>
+          <label for="files" class="label">文件</label>
+          <input
+            type="file"
+            id="files"
+            name="files"
+            multiple
+            accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.csv,.mp4,.mov,.mp3,.m4a"
+            class="input">
+        </div>
+        <div>
+          <label for="title" class="label">标题</label>
+          <input type="text" id="title" name="title" class="input" maxlength="255" placeholder="选填">
+        </div>
+        <div>
+          <label for="note" class="label">备注</label>
+          <textarea id="note" name="note" rows="2" class="input" placeholder="选填"></textarea>
+        </div>
+        <div>
+          <label for="sensitivity" class="label">敏感级别</label>
+          <select id="sensitivity" name="sensitivity" class="input">
+            {% for value, label in sensitivity_choices %}
+              <option value="{{ value }}" {% if forloop.first %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </section>
+
+      <div class="space-y-2">
+        <button type="submit" class="btn-primary flex h-12 w-full items-center justify-center">关联</button>
+        <a href="{% url 'policies:policy_document_list' policy.pk %}" class="btn-secondary flex h-12 w-full items-center justify-center">取消</a>
+      </div>
+    </form>
+  </div>
+{% endblock %}

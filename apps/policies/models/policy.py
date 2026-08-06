@@ -72,6 +72,9 @@ class Policy(TimeStampedModel, UUIDModel, SoftDeleteModel):
     premium_amount = models.DecimalField(
         max_digits=12, decimal_places=2, default=Decimal("0"), verbose_name="每期保费"
     )
+    last_paid_batch = models.DateField(
+        null=True, blank=True, verbose_name="最后已缴批次"
+    )
     status = models.CharField(
         max_length=30,
         choices=Status.choices,

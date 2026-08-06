@@ -15,6 +15,7 @@ from django.db import transaction
 from apps.accounts.models import User
 from apps.customers.models import Customer
 from apps.documents.models import Album, Document
+from apps.documents.services.thumbnails import ensure_thumbnails_for_document
 from apps.documents.storage import default_storage, new_storage_key
 
 # 单文件大小上限（默认 100MB，settings.DOCUMENT_MAX_UPLOAD_SIZE 可覆盖）。
@@ -180,6 +181,7 @@ def save_upload(
                 doc.customers.set(customers)
             if albums:
                 doc.albums.set(albums)
+        ensure_thumbnails_for_document(doc)
         return doc
     except BaseException:
         default_storage.delete(key)

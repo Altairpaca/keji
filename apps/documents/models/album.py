@@ -4,6 +4,7 @@
 自由填写。``customer`` 可空——空表示全局相册（未分类文件的归置处）。
 """
 
+from django.conf import settings
 from django.db import models
 
 from apps.core.models.base import SoftDeleteModel, TimeStampedModel, UUIDModel
@@ -43,6 +44,14 @@ class Album(TimeStampedModel, UUIDModel, SoftDeleteModel):
         verbose_name="关联客户",
     )
     description = models.TextField(blank=True, verbose_name="说明")
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+        verbose_name="创建者",
+    )
 
     class Meta:
         ordering = ["name"]

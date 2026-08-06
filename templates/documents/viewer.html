@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% load perm_tags %}
+
+{% block title %}{{ doc.title|default:doc.original_name }} — 客迹 Keji{% endblock %}
+
+{% block content %}
+  <div class="mx-auto max-w-4xl">
+    <div class="mb-4 flex items-center justify-between gap-3">
+      <h1 class="min-w-0 truncate text-xl font-semibold tracking-tight text-slate-900" title="{{ doc.original_name }}">
+        {{ doc.title|default:doc.original_name }}
+      </h1>
+      {% has_perm "can_download_originals" as can_download %}
+      {% if can_download %}
+        <a href="{% url 'documents:document_download' doc.id %}" class="btn-primary btn-sm shrink-0">下载原文件</a>
+      {% endif %}
+    </div>
+
+    {% if is_image %}
+      <div class="card overflow-hidden p-2">
+        <img src="{% url 'documents:document_image' doc.id %}" alt="{{ doc.original_name }}"
+             class="mx-auto max-h-[70vh] w-auto rounded-lg {% if doc.sensitivity != 'normal' %}blur-sm{% endif %}"
+             loading="lazy">
+      </div>
+      {% if using_preview %}
+        <p class="mt-2 text-center text-body-sm text-slate-400">已按预览图显示（原图较大，可下载原文件查看细节）</p>
+      {% endif %}
+    {% else %}
+      <div class="card flex flex-col items-center gap-3 py-14 text-center">
+        <svg class="h-12 w-12 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" x2="8" y1="13" y2="13"></line>
+          <line x1="16" x2="8" y1="17" y2="17"></line>
+        </svg>
+        <p class="text-body font-medium text-slate-900">{{ doc.original_name }}</p>
+        <p class="text-body-sm text-slate-500">{{ doc.mime_type }} · {{ doc.size|filesizeformat }}</p>
+        {% has_perm "can_download_originals" as can_download %}
+        {% if can_download %}
+          <a href="{% url 'documents:document_download' doc.id %}" class="btn-primary">点击下载</a>
+        {% endif %}
+      </div>
+    {% endif %}
+
+    <section class="card mt-4 space-y-4">
+      <h2 class="text-body font-semibold text-slate-900">文件信息</h2>
+      <dl class="grid grid-cols-1 gap-x-6 gap-y-3 text-body-sm sm:grid-cols-2">
+        <div class="flex justify-between gap-3">
+          <dt class="text-slate-500">原始文件名</dt>
+          <dd class="min-w-0 truncate text-right font-medium text-slate-900">{{ doc.original_name }}</dd>
+        </div>
+        <div class="flex justify-between gap-3">
+          <dt class="text-slate-500">大小</dt>
+          <dd class="font-medium text-slate-900">{{ doc.size|filesizeformat }}</dd>
+        </div>
+        <div class="flex justify-between gap-3">
+          <dt class="text-slate-500">类型</dt>
+          <dd class="font-medium text-slate-900">{{ doc.mime_type }}</dd>
+        </div>
+        <div class="flex justify-between gap-3">
+          <dt class="text-slate-500">敏感级别</dt>
+          <dd class="font-medium text-slate-900">{{ doc.get_sensitivity_display }}</dd>
+        </div>
+        <div class="flex justify-between gap-3">
+          <dt class="text-slate-500">上传时间</dt>
+          <dd class="font-medium text-slate-900">{{ doc.created_at|date:"Y-m-d H:i" }}</dd>
+        </div>
+        {% if doc.taken_at %}
+          <div class="flex justify-between gap-3">
+            <dt class="text-slate-500">拍摄时间</dt>
+            <dd class="font-medium text-slate-900">{{ doc.taken_at|date:"Y-m-d H:i" }}</dd>
+          </div>
+        {% endif %}
+        {% if doc.customers.all %}
+          <div class="sm:col-span-2">
+            <dt class="mb-1 text-slate-500">关联客户</dt>
+            <dd class="flex flex-wrap gap-1.5">
+              {% for customer in doc.customers.all %}
+                <span class="rounded-full bg-brand-50 px-2.5 py-1 text-body-sm font-medium text-brand-700 ring-1 ring-inset ring-brand-200">{{ customer.name }}</span>
+              {% endfor %}
+            </dd>
+          </div>
+        {% endif %}
+        {% if doc.albums.all %}
+          <div class="sm:col-span-2">
+            <dt class="mb-1 text-slate-500">关联相册</dt>
+            <dd class="flex flex-wrap gap-1.5">
+              {% for album in doc.albums.all %}
+                <span class="rounded-full bg-slate-100 px-2.5 py-1 text-body-sm font-medium text-slate-600 ring-1 ring-inset ring-slate-200">{{ album.name }}</span>
+              {% endfor %}
+            </dd>
+          </div>
+        {% endif %}
+      </dl>
+    </section>
+
+    <div class="mt-4 flex items-center justify-between">
+      <a href="{% url 'documents:document_detail' doc.id %}" class="btn-secondary">详情</a>
+      <a href="{% url 'documents:document_list' %}" class="btn-secondary">返回文件列表</a>
+    </div>
+  </div>
+{% endblock %}

@@ -81,6 +81,9 @@ class Task(TimeStampedModel, UUIDModel, SoftDeleteModel):
         verbose_name="创建者",
     )
     remark = models.TextField(blank=True, verbose_name="备注")
+    source_key = models.CharField(
+        max_length=100, blank=True, default="", db_index=True, verbose_name="来源键"
+    )
 
     class Meta:
         ordering = ["due_date", "created_at"]

@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% load perm_tags %}
+
+{% block title %}相册 — 客迹 Keji{% endblock %}
+
+{% block content %}
+  <div class="mb-4 flex items-center justify-between gap-3">
+    <h1 class="text-xl font-semibold tracking-tight text-slate-900">相册</h1>
+    {% has_perm "can_manage_customers" as can_manage %}
+    {% if can_manage %}
+      <a href="{% url 'documents:album_create' %}" class="btn-primary btn-sm">新建相册</a>
+    {% endif %}
+  </div>
+
+  {% if albums %}
+    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      {% for album in albums %}
+        <a href="{% url 'documents:album_detail' album.id %}"
+           class="card block p-4 transition-shadow hover:shadow-card">
+          <div class="flex items-center justify-between gap-2">
+            <h2 class="min-w-0 truncate text-body font-semibold text-slate-900">{{ album.name }}</h2>
+            <span class="badge-neutral shrink-0">{{ album.get_category_display }}</span>
+          </div>
+          {% if album.custom_category %}
+            <p class="mt-1 truncate text-body-sm text-slate-500">{{ album.custom_category }}</p>
+          {% endif %}
+          {% if album.description %}
+            <p class="mt-1 line-clamp-2 text-body-sm text-slate-400">{{ album.description }}</p>
+          {% endif %}
+          <p class="mt-3 text-body-sm text-slate-500">
+            {{ album.document_count }} 个文件
+            {% if album.customer %} · {{ album.customer.name }}{% endif %}
+          </p>
+        </a>
+      {% endfor %}
+    </div>
+  {% else %}
+    {% url 'documents:album_create' as create_url %}
+    {% include "components/empty_state.html" with icon="inbox" title="还没有相册" description="按类别把客户证件、保单、理赔材料归置成组。" action_url=create_url action_label="新建相册" %}
+  {% endif %}
+{% endblock %}

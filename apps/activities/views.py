@@ -23,6 +23,7 @@ from apps.activities.services import (
     update_communication,
     update_work_event,
 )
+from apps.activities.services.timeline import timeline_items
 from apps.customers.models import Customer
 
 PAGE_SIZE = 20
@@ -35,6 +36,21 @@ def _get_customer(request: HttpRequest, customer_pk: uuid.UUID | None) -> Custom
         return None
     customer: Customer = get_object_or_404(Customer, pk=raw)
     return customer
+
+
+@require_permission("can_view_customers")
+def customer_timeline(request: HttpRequest, customer_pk: uuid.UUID) -> HttpResponse:
+    """客户统一时间线 partial（HTMX 可加载，T5.2）。
+
+    聚合工作事件 / 沟通记录 / 待办 / 文件上传，供客户详情页中栏首屏嵌入
+    与后续 HTMX 局部刷新；条目渲染只消费标量字段，无 N+1。
+    """
+    customer = get_object_or_404(Customer, pk=customer_pk)
+    return render(
+        request,
+        "activities/_timeline.html",
+        {"items": timeline_items(customer)},
+    )
 
 
 # ---------------------------------------------------------------------------

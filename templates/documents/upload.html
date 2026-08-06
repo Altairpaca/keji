@@ -3,41 +3,145 @@
 {% block title %}上传文件 — 客迹 Keji{% endblock %}
 
 {% block content %}
-  <div class="mx-auto max-w-2xl">
-    <h1 class="mb-4 text-xl font-semibold tracking-tight text-slate-900">上传文件</h1>
+  <div class="mx-auto w-full max-w-5xl px-4 pb-12 pt-6 sm:px-6">
+    <header class="mb-6">
+      <h1 class="text-xl font-semibold tracking-tight text-slate-900">上传文件</h1>
+      <p class="mt-1 text-body-sm text-slate-500">拍照或从相册多选，逐文件预览确认后一次上传</p>
+    </header>
 
-    <form method="post" enctype="multipart/form-data" class="space-y-6">
+    <form
+      method="post"
+      enctype="multipart/form-data"
+      x-data="uploader()"
+      @submit="beforeSubmit($event)"
+      class="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:items-start">
+
       {% csrf_token %}
 
-      <section class="card space-y-4">
-        <h2 class="text-body font-semibold text-slate-900">选择文件</h2>
-        <div>
-          <label for="files" class="label">文件（可多选）</label>
-          <input
-            type="file"
-            id="files"
-            name="files"
-            multiple
-            accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.mp4,.mov,.mp3,.m4a,.heic,.heif"
-            capture="environment"
-            class="input py-2">
-          <p class="mt-1 text-body-sm text-slate-400">
-            支持图片（JPG/PNG/GIF/WebP/HEIC/HEIF）、PDF、Office 文档、CSV、视频与音频；单文件上限 100MB。
+      {# --- 手机端在上：选择触发区 + 预览网格；桌面端移到右侧栏 --- #}
+      <section class="order-1 space-y-6 lg:order-2">
+        {# 拍照输入：capture 直接唤起相机；相册输入：无 capture 的多选，是唯一提交载体 #}
+        <input
+          id="capture-input"
+          type="file"
+          multiple
+          accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.csv,.mp4,.mov,.mp3,.m4a"
+          capture="environment"
+          class="hidden"
+          @change="onPick($event, 'capture')">
+        <input
+          id="gallery-input"
+          name="files"
+          type="file"
+          multiple
+          accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.csv,.mp4,.mov,.mp3,.m4a"
+          class="hidden"
+          @change="onPick($event, 'gallery')">
+
+        <section class="card space-y-3">
+          <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <button
+              type="button"
+              @click="pickCamera()"
+              class="btn-primary flex h-14 items-center justify-center gap-2 active:scale-[0.98]">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                   stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6" aria-hidden="true">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                <circle cx="12" cy="13" r="4"/>
+              </svg>
+              拍照
+            </button>
+            <button
+              type="button"
+              @click="pickGallery()"
+              class="btn-primary flex h-14 items-center justify-center gap-2 active:scale-[0.98]">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                   stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6" aria-hidden="true">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                <circle cx="8.5" cy="8.5" r="1.5"/>
+                <polyline points="21 15 16 10 5 21"/>
+              </svg>
+              从相册选择
+            </button>
+          </div>
+          <p x-show="error" x-text="error" class="text-body-sm text-red-600" role="alert"></p>
+          <p class="text-body-sm text-slate-400">
+            支持图片、PDF、Office 文档、CSV、视频与音频；单文件上限 100MB。
           </p>
-        </div>
+        </section>
+
+        <section class="card space-y-3" x-show="items.length">
+          <div class="flex items-center justify-between">
+            <h2 class="text-body font-semibold text-slate-900">
+              已选 <span x-text="items.length" class="text-brand-600"></span> 个文件
+            </h2>
+            <button
+              type="button"
+              @click="clearAll()"
+              class="flex h-11 items-center gap-1 px-3 text-body-sm font-medium text-slate-500 active:text-red-600">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                   stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4" aria-hidden="true">
+                <path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
+                <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+              </svg>
+              清空
+            </button>
+          </div>
+
+          <div id="upload-preview" class="grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4">
+            <template x-for="item in items" :key="item.id">
+              <div class="relative rounded-xl border border-slate-200 bg-white shadow-sm">
+                <div class="aspect-square w-full overflow-hidden rounded-t-xl bg-slate-100">
+                  <img
+                    x-show="item.preview"
+                    :src="item.preview"
+                    :alt="item.name"
+                    class="h-full w-full object-cover">
+                  <div
+                    x-show="!item.preview"
+                    class="flex h-full w-full flex-col items-center justify-center gap-1.5 p-2 text-slate-500">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round" class="h-8 w-8" aria-hidden="true">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                      <path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/>
+                    </svg>
+                    <span x-text="item.ext" class="max-w-full truncate rounded bg-slate-200/70 px-1.5 py-0.5 text-xs font-semibold uppercase"></span>
+                  </div>
+                </div>
+                <div class="flex items-center justify-between gap-1 px-2 py-1.5">
+                  <span class="truncate text-xs text-slate-700" :title="item.name" x-text="item.name"></span>
+                  <span class="shrink-0 text-xs text-slate-400" x-text="formatSize(item.size)"></span>
+                </div>
+                <button
+                  type="button"
+                  @click="remove(item.id)"
+                  :aria-label="'移除 ' + item.name"
+                  class="absolute -right-2 -top-2 flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-sm active:scale-95">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                       stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5" aria-hidden="true">
+                    <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
+                  </svg>
+                </button>
+              </div>
+            </template>
+          </div>
+        </section>
       </section>
 
-      <section class="card space-y-4">
-        <h2 class="text-body font-semibold text-slate-900">关联信息（可选）</h2>
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      {# --- 关联信息 + 提交：手机端在下，桌面端左侧栏 --- #}
+      <section class="order-2 space-y-6 lg:order-1">
+        <section class="card space-y-4">
+          <h2 class="text-body font-semibold text-slate-900">关联信息（可选）</h2>
+
           <div>
             <label for="customers" class="label">关联客户</label>
             <select id="customers" name="customers" multiple size="4" class="input">
-              {% for customer in customers %}
-                <option value="{{ customer.id }}">{{ customer.name }}</option>
+              {% for value, label in customer_choices %}
+                <option value="{{ value }}">{{ label }}</option>
               {% endfor %}
             </select>
           </div>
+
           <div>
             <label for="albums" class="label">关联相册</label>
             <select id="albums" name="albums" multiple size="4" class="input">
@@ -46,37 +150,129 @@
               {% endfor %}
             </select>
           </div>
-        </div>
 
-        <div>
-          <label for="title" class="label">标题</label>
-          <input type="text" id="title" name="title" class="input" maxlength="255" placeholder="选填">
-        </div>
-
-        <div>
-          <label for="note" class="label">备注</label>
-          <textarea id="note" name="note" rows="2" class="input" placeholder="选填"></textarea>
-        </div>
-
-        <div>
-          <span class="label">敏感级别</span>
-          <div class="grid grid-cols-1 gap-2 sm:grid-cols-3">
-            {% for value, label in sensitivity_choices %}
-              <label class="flex items-center gap-2">
-                <input type="radio" name="sensitivity" value="{{ value }}"
-                       {% if forloop.first %}checked{% endif %}
-                       class="h-4 w-4 border-slate-300 text-brand-600 focus:ring-brand-500">
-                <span class="text-body-sm text-slate-700">{{ label }}</span>
-              </label>
-            {% endfor %}
+          <div>
+            <label for="title" class="label">标题</label>
+            <input type="text" id="title" name="title" class="input" maxlength="255"
+                   value="{{ initial_title }}" placeholder="选填">
           </div>
+
+          <div>
+            <label for="note" class="label">备注</label>
+            <textarea id="note" name="note" rows="2" class="input" placeholder="选填">{{ initial_note }}</textarea>
+          </div>
+
+          <div>
+            <label for="sensitivity" class="label">敏感级别</label>
+            <select id="sensitivity" name="sensitivity" class="input">
+              {% for value, label in sensitivity_choices %}
+                <option value="{{ value }}" {% if forloop.first %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </section>
+
+        <div class="space-y-2">
+          <button
+            type="submit"
+            :disabled="submitting"
+            class="btn-primary flex h-12 w-full items-center justify-center disabled:cursor-not-allowed disabled:opacity-60">
+            <span x-show="!submitting">
+              上传<span x-show="items.length" x-text="'（' + items.length + ' 个文件）'"></span>
+            </span>
+            <span x-show="submitting" class="flex items-center gap-2">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                   stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 animate-spin" aria-hidden="true">
+                <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+              </svg>
+              上传中…
+            </span>
+          </button>
+          <a href="{% url 'documents:document_list' %}" class="btn-secondary flex h-12 w-full items-center justify-center">取消</a>
         </div>
       </section>
-
-      <div class="flex items-center justify-end gap-3">
-        <a href="{% url 'documents:document_list' %}" class="btn-secondary">取消</a>
-        <button type="submit" class="btn-primary">上传</button>
-      </div>
     </form>
   </div>
+
+  <script>
+    document.addEventListener('alpine:init', () => {
+      Alpine.data('uploader', () => ({
+        items: [],
+        submitting: false,
+        error: '',
+        seq: 0,
+
+        pickCamera() {
+          this.error = '';
+          document.getElementById('capture-input').click();
+        },
+
+        pickGallery() {
+          this.error = '';
+          document.getElementById('gallery-input').click();
+        },
+
+        onPick(event) {
+          const picked = Array.from(event.target.files || []);
+          for (const file of picked) {
+            const key = `${file.name}|${file.size}|${file.lastModified}`;
+            if (this.items.some((item) => item.key === key)) continue;
+            const ext = file.name.includes('.') ? file.name.split('.').pop().toUpperCase() : '';
+            this.items.push({
+              id: `f${++this.seq}`,
+              key,
+              name: file.name,
+              size: file.size,
+              ext,
+              file,
+              preview: (file.type || '').startsWith('image/') ? URL.createObjectURL(file) : '',
+            });
+          }
+          this.syncInput();
+          event.target.value = '';
+          this.error = '';
+        },
+
+        syncInput() {
+          const input = document.getElementById('gallery-input');
+          if (!input || typeof DataTransfer === 'undefined') return;
+          const dt = new DataTransfer();
+          for (const item of this.items) dt.items.add(item.file);
+          input.files = dt.files;
+        },
+
+        remove(id) {
+          const index = this.items.findIndex((item) => item.id === id);
+          if (index === -1) return;
+          const [removed] = this.items.splice(index, 1);
+          if (removed.preview) URL.revokeObjectURL(removed.preview);
+          this.syncInput();
+        },
+
+        clearAll() {
+          for (const item of this.items) {
+            if (item.preview) URL.revokeObjectURL(item.preview);
+          }
+          this.items = [];
+          this.syncInput();
+        },
+
+        beforeSubmit(event) {
+          if (this.items.length === 0) {
+            event.preventDefault();
+            this.error = '请先选择要上传的文件';
+            return;
+          }
+          this.error = '';
+          this.submitting = true;
+        },
+
+        formatSize(bytes) {
+          if (bytes < 1024) return `${bytes} B`;
+          if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+          return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+        },
+      }));
+    });
+  </script>
 {% endblock %}

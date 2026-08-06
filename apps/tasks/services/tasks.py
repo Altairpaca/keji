@@ -30,8 +30,13 @@ def create_task(
     remark: str = "",
     assignee: User | None = None,
     created_by: User | None = None,
+    source_key: str = "",
 ) -> Task:
-    """创建待办：title 非空校验；customer / assignee / created_by 允许为空。"""
+    """创建待办：title 非空校验；customer / assignee / created_by 允许为空。
+
+    source_key 为来源键（如 ``event:<pk>`` / ``comm:<pk>``），用于待办与
+    业务对象（工作事件 / 沟通记录）的自动联动与防重复。
+    """
     cleaned_title = title.strip()
     if not cleaned_title:
         raise ValueError("待办标题不能为空")
@@ -48,6 +53,7 @@ def create_task(
             remark=remark,
             assignee=assignee,
             created_by=created_by,
+            source_key=source_key,
         )
     return task
 
@@ -130,3 +136,27 @@ def tasks_due_between(start: date, end: date) -> QuerySet:
     return Task.objects.filter(due_date__gte=start, due_date__lte=end).exclude(
         status__in=_TERMINAL_STATUSES
     )
+
+
+def find_task_by_source(source_key: str) -> Task | None:
+    """按来源键查找未完成（非 done/cancelled）待办，供防重复使用。
+
+    已完成 / 已取消的待办视为终结，不命中——业务对象再次触发时允许重建。
+    """
+    task: Task | None = (
+        Task.objects.filter(source_key=source_key)
+        .exclude(status__in=_TERMINAL_STATUSES)
+        .order_by("created_at")
+        .first()
+    )
+    return task
+
+
+def cancel_tasks_by_source(source_key: str) -> int:
+    """按来源键取消所有未完成待办（如业务对象软删时联动），返回取消数量。"""
+    tasks = Task.objects.filter(source_key=source_key).exclude(status__in=_TERMINAL_STATUSES)
+    count = 0
+    for task in tasks:
+        cancel_task(task)
+        count += 1
+    return count

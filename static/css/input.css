@@ -66,6 +66,12 @@
   .badge-danger {
     @apply badge bg-red-50 text-red-700 ring-1 ring-inset ring-red-200;
   }
+  .badge-cyan {
+    @apply badge bg-cyan-50 text-cyan-700 ring-1 ring-inset ring-cyan-200;
+  }
+  .badge-purple {
+    @apply badge bg-purple-50 text-purple-700 ring-1 ring-inset ring-purple-200;
+  }
 
   /* 表单输入：统一输入框 / 下拉 / 文本域外观 */
   .input {

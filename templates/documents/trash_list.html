@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% load perm_tags %}
+
+{% block title %}回收站 — 客迹 Keji{% endblock %}
+
+{% block content %}
+  <div class="mb-4 flex items-center justify-between gap-3">
+    <h1 class="text-xl font-semibold tracking-tight text-slate-900">回收站</h1>
+    {% has_perm "can_permanent_delete" as can_permanent_delete %}
+    {% if can_permanent_delete and page_obj.object_list %}
+      <form method="post" action="{% url 'documents:trash_empty' %}"
+            onsubmit="return confirm('确定要永久删除回收站中的全部文件吗？此操作不可恢复。');">
+        {% csrf_token %}
+        <button type="submit" class="btn-danger btn-sm">清空回收站</button>
+      </form>
+    {% endif %}
+  </div>
+
+  {% if page_obj.object_list %}
+    <div class="card overflow-hidden">
+      <ul class="divide-y divide-slate-200">
+        {% for doc in page_obj.object_list %}
+          <li class="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+            <div class="min-w-0">
+              <p class="truncate text-body-sm font-medium text-slate-900" title="{{ doc.original_name }}">{{ doc.original_name }}</p>
+              <p class="text-body-sm text-slate-400">删除于 {{ doc.deleted_at|date:"Y-m-d H:i" }}</p>
+            </div>
+            <div class="flex items-center gap-2">
+              {% has_perm "can_manage_customers" as can_manage %}
+              {% if can_manage %}
+                <form method="post" action="{% url 'documents:trash_restore' doc.id %}">
+                  {% csrf_token %}
+                  <button type="submit" class="btn-secondary btn-sm">恢复</button>
+                </form>
+              {% endif %}
+              {% if can_permanent_delete %}
+                <form method="post" action="{% url 'documents:trash_permanent_delete' doc.id %}"
+                      onsubmit="return confirm('确定要永久删除「{{ doc.original_name }}」吗？此操作不可恢复。');">
+                  {% csrf_token %}
+                  <button type="submit" class="btn-danger btn-sm">永久删除</button>
+                </form>
+              {% endif %}
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% include "components/pagination.html" with page_obj=page_obj %}
+  {% else %}
+    {% include "components/empty_state.html" with icon="trash" title="回收站是空的" description="已删除的文件会保留在这里，超过保留期后由 GC 自动清理。" %}
+  {% endif %}
+{% endblock %}

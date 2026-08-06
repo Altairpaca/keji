@@ -342,7 +342,7 @@ def test_upload_post_success(
     )
 
     assert response.status_code == 302
-    assert response.url == reverse("documents:document_list")
+    assert response.url == reverse("documents:upload_result")
     doc = Document.objects.get()
     assert doc.original_name == "photo.png"
     assert doc.sha256 == hashlib.sha256(content).hexdigest()

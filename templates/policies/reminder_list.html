@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% load perm_tags %}
+
+{% block title %}缴费提醒 — 客迹 Keji{% endblock %}
+
+{% block content %}
+  {% has_perm "can_manage_customers" as can_manage %}
+  <div class="mb-4 flex items-center justify-between gap-3">
+    <h1 class="text-xl font-semibold tracking-tight text-slate-900">缴费提醒</h1>
+    <span class="text-body-sm text-slate-500">共 {{ rows|length }} 份保单有待缴批次</span>
+  </div>
+
+  {% if rows %}
+    <div class="space-y-3">
+      {% for row in rows %}
+        <div class="card flex items-center justify-between gap-4 p-4" data-testid="reminder-card">
+          <div class="min-w-0">
+            <h2 class="truncate text-body font-semibold text-slate-900">
+              {{ row.policy.insurer }} {{ row.policy.name }}
+            </h2>
+            <p class="mt-0.5 truncate text-body-sm text-slate-500">
+              投保人 {{ row.policy.policyholder.name }} · 保单号 {{ row.policy.policy_no }}
+            </p>
+            <p class="mt-0.5 text-body-sm text-slate-500">
+              每期保费 ¥{{ row.policy.premium_amount|floatformat:2 }}
+            </p>
+          </div>
+          <div class="shrink-0 text-right">
+            <p class="{% if row.overdue %}font-semibold text-red-600{% else %}text-slate-900{% endif %}">
+              应缴日 {{ row.due_date|date:"Y-m-d" }}
+            </p>
+            {% if row.grace %}
+              <span class="mt-1 inline-block rounded bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">宽限期</span>
+            {% elif row.overdue %}
+              <span class="mt-1 inline-block rounded bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">已逾期</span>
+            {% endif %}
+          </div>
+          {% if can_manage %}
+            <div class="flex shrink-0 gap-2">
+              <form method="post" action="{% url 'policies:reminder_mark_paid' row.policy.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="btn-secondary btn-sm">标记已缴</button>
+              </form>
+              <form method="post" action="{% url 'policies:reminder_sync' row.policy.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="btn-secondary btn-sm">同步待办</button>
+              </form>
+            </div>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    {% include "components/empty_state.html" with icon="bell" title="暂无待缴批次" description="当前没有需要缴费提醒的保单。" %}
+  {% endif %}
+{% endblock %}

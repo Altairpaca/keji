@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load perm_tags %}
 {% load relations_tags %}
+{% load activities_tags %}
 
 {% block title %}{{ customer.name }} — 客迹 Keji{% endblock %}
 
@@ -125,10 +126,13 @@
       </dl>
     </section>
 
-    {# 区块占位（T5-T8 填充） #}
+    {# 统一时间线（T5.2：工作事件 / 沟通记录 / 待办 / 文件上传聚合，首屏服务端渲染） #}
     <section class="card">
-      <h2 class="text-body font-semibold text-slate-900">时间线</h2>
-      <p class="mt-2 text-body-sm text-slate-500">时间线将在后续版本显示（工作事件、沟通记录聚合）。</p>
+      <div class="mb-3 flex items-center justify-between">
+        <h2 class="text-body font-semibold text-slate-900">时间线</h2>
+        <span class="text-body-sm text-slate-400">最近动态</span>
+      </div>
+      {% timeline_block customer %}
     </section>
 
     <section class="card">
