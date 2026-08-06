@@ -56,6 +56,7 @@ def _make_doc(manager: User, suffix: str) -> Document:
     )
     return doc
 
+
 def _make_album(name: str, category: str = "other") -> Album:
     album: Album = Album.objects.create(name=name, category=category)
     return album
