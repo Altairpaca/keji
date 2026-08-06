@@ -58,14 +58,8 @@ static: ## 收集静态文件（collectstatic）
 seed: ## 灌入演示数据（seed_demo --reset）
 	$(COMPOSE) exec web python manage.py seed_demo --reset
 
-backup: ## 备份数据库到 backups/（pg_dump + gzip）
-	@mkdir -p backups
-	@f="backups/keji_$$(date +%Y%m%d_%H%M%S).sql.gz"; \
-	$(COMPOSE) exec -T db pg_dump -U $(DB_USER) $(DB_NAME) | gzip > "$$f"; \
-	echo "备份完成：$$f"
+backup: ## 创建完整备份（数据库 pg_dump + 媒体文件 + 清单与校验和，backups/<stamp>/）
+	$(COMPOSE) exec web python manage.py backup
 
-restore: ## 从 backups/ 最新备份恢复数据库（危险操作，覆盖现有数据）
-	@latest=$$(ls -t backups/keji_*.sql.gz 2>/dev/null | head -1); \
-	if [ -z "$$latest" ]; then echo "错误：backups/ 中没有可恢复的备份文件"; exit 1; fi; \
-	echo "将从 $$latest 恢复数据库（覆盖现有数据）..."; \
-	gzip -dc "$$latest" | $(COMPOSE) exec -T db psql -U $(DB_USER) $(DB_NAME)
+restore: ## 从最新备份恢复数据库与媒体文件（危险操作，覆盖现有数据）
+	$(COMPOSE) exec web python manage.py restore_backup --latest --yes
