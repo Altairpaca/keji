@@ -98,9 +98,7 @@ def test_task_list_query_count_stays_bounded(db: None, viewer: User) -> None:
     assert _query_count(client, reverse("tasks:task_list")) <= 8
 
 
-def test_claim_list_query_count_no_n1_for_missing_materials(
-    db: None, viewer: User
-) -> None:
+def test_claim_list_query_count_no_n1_for_missing_materials(db: None, viewer: User) -> None:
     customer = Customer.objects.create(name="理赔客户")
     statuses = ["not_submitted", "needs_supplement", "submitted", "checked"]
     for i in range(BULK):
