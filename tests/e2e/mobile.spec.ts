@@ -122,7 +122,8 @@ test.describe('手机 390x844 关键页面无横向滚动', () => {
   });
 });
 
-/** 触控目标扫描：main 内可见的 a/button/select 高度 <44px 的全部列出 */
+/** 触控目标扫描：main 内可见的 a/button/select 高度 <44px 的全部列出。
+ *  行内文本链接（display:inline 的 a，即段落内的 prose 链接）不适用 44px 规则（WCAG 2.5.8 例外）。 */
 async function touchTargetViolations(page: Page): Promise<string[]> {
   return page.evaluate(() => {
     const bad: string[] = [];
@@ -132,6 +133,7 @@ async function touchTargetViolations(page: Page): Promise<string[]> {
     els.forEach((el) => {
       const style = getComputedStyle(el);
       if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') return;
+      if (el.tagName === 'A' && style.display === 'inline') return;
       const r = el.getBoundingClientRect();
       if (r.height === 0 || r.width === 0) return;
       if (r.height < 44) {
