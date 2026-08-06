@@ -1,0 +1,28 @@
+# ---- VCS / agent state ----
+.git
+.omo
+.opencode
+.codegraph
+
+# ---- Python ----
+.venv
+venv
+__pycache__
+*.py[cod]
+.pytest_cache
+.mypy_cache
+.ruff_cache
+
+# ---- Django runtime ----
+media
+staticfiles
+db.sqlite3
+
+# ---- Backups / docs ----
+backups
+docs
+
+# ---- Env / secrets ----
+.env
+.env.local
+.env.production
