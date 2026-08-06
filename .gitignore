@@ -47,3 +47,5 @@ playwright-report/
 *.swp
 .idea/
 .vscode/
+
+.codegraph
