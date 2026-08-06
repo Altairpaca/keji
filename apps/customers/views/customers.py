@@ -17,6 +17,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from apps.accounts.permissions import require_permission
+from apps.activities.services.timeline import timeline_items
 from apps.core.services.saved_views import list_views
 from apps.customers.forms import CustomerForm
 from apps.customers.models import Customer, CustomerStatus, Tag
@@ -32,6 +33,23 @@ PAGE_SIZE = 20
 
 # 详情页侧栏「客户列表」最多展示条数（简化复用列表）。
 SIDEBAR_CUSTOMER_LIMIT = 50
+
+# 手机端四区块（规格 §19）聚合数量上限。
+MOBILE_BLOCK_LIMIT = 3
+TIMELINE_PREVIEW_LIMIT = 5
+
+# 保单「进行中」判定：排除终态（已缴清 / 失效 / 退保 / 解约 / 满期 / 理赔结案）。
+POLICY_TERMINAL_STATUSES = (
+    "paid_up",
+    "lapsed",
+    "surrendered",
+    "terminated",
+    "matured",
+    "claim_closed",
+)
+
+TASK_DONE_STATUSES = ("done", "cancelled")
+CLAIM_CLOSED_STATUS = "closed"
 
 
 def _is_valid_uuid(value: str) -> bool:
@@ -104,10 +122,30 @@ def customer_detail(request: HttpRequest, pk: uuid.UUID) -> HttpResponse:
     sidebar_customers: QuerySet = Customer.objects.select_related("status").order_by("name")[
         :SIDEBAR_CUSTOMER_LIMIT
     ]
+    # 手机端四区块聚合（规格 §19）：未完成待办 / 进行中保单 / 理赔中案件 / 最近时间线。
+    open_tasks = customer.tasks.exclude(status__in=TASK_DONE_STATUSES).order_by(
+        "due_date", "created_at"
+    )[:MOBILE_BLOCK_LIMIT]
+    active_policies = customer.held_policies.exclude(status__in=POLICY_TERMINAL_STATUSES)[
+        :MOBILE_BLOCK_LIMIT
+    ]
+    open_claims = customer.claims.exclude(status=CLAIM_CLOSED_STATUS)[:MOBILE_BLOCK_LIMIT]
     return render(
         request,
         "customers/customer_detail.html",
-        {"customer": customer, "sidebar_customers": sidebar_customers},
+        {
+            "customer": customer,
+            "sidebar_customers": sidebar_customers,
+            "open_tasks": open_tasks,
+            "open_tasks_count": customer.tasks.exclude(status__in=TASK_DONE_STATUSES).count(),
+            "active_policies": active_policies,
+            "active_policies_count": customer.held_policies.exclude(
+                status__in=POLICY_TERMINAL_STATUSES
+            ).count(),
+            "open_claims": open_claims,
+            "open_claims_count": customer.claims.exclude(status=CLAIM_CLOSED_STATUS).count(),
+            "timeline_entries": timeline_items(customer, limit=TIMELINE_PREVIEW_LIMIT),
+        },
     )
 
 

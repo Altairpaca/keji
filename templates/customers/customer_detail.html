@@ -38,22 +38,177 @@
       <div class="flex shrink-0 items-center gap-2">
         {% has_perm "can_manage_customers" as can_manage %}
         {% if can_manage %}
-          <a href="{% url 'customers:customer_edit' pk=customer.pk %}" class="btn-secondary btn-sm">编辑</a>
+          <a href="{% url 'customers:customer_edit' pk=customer.pk %}" class="btn-secondary btn-sm min-h-[44px]">编辑</a>
         {% endif %}
         {% has_perm "can_delete_customers" as can_delete %}
         {% if can_delete %}
           <form method="post" action="{% url 'customers:customer_delete' pk=customer.pk %}"
                 onsubmit="return confirm('确认删除客户 {{ customer.name }}？可在回收站恢复。')">
             {% csrf_token %}
-            <button type="submit" class="btn-danger btn-sm">删除</button>
+            <button type="submit" class="btn-danger btn-sm min-h-[44px]">删除</button>
           </form>
         {% endif %}
       </div>
     </div>
 
-    {# 信息卡：全字段 #}
-    <section class="card">
-      <h2 class="mb-3 text-body font-semibold text-slate-900">基本信息</h2>
+    {# 手机端四区块（规格 §19，<1024px）：是谁 / 在处理什么 / 上次发生什么 / 下一步做什么 #}
+    <div class="space-y-4 lg:hidden">
+      {# 是谁：姓名与状态见头部，此处只列有值的联系 / 画像字段 #}
+      <section class="card">
+        <h2 class="mb-3 text-body-sm font-semibold uppercase tracking-wide text-slate-400">是谁</h2>
+        <dl class="grid grid-cols-2 gap-x-4 gap-y-3">
+          {% if customer.phone %}
+            <div>
+              <dt class="label">手机号</dt>
+              <dd class="text-body-sm text-slate-900">
+                <a href="tel:{{ customer.phone }}" class="text-brand-700">{{ customer.phone }}</a>
+              </dd>
+            </div>
+          {% endif %}
+          {% if customer.wechat_nickname %}
+            <div>
+              <dt class="label">微信昵称</dt>
+              <dd class="text-body-sm text-slate-900">{{ customer.wechat_nickname }}</dd>
+            </div>
+          {% endif %}
+          {% if customer.region %}
+            <div>
+              <dt class="label">地区</dt>
+              <dd class="text-body-sm text-slate-900">{{ customer.region }}</dd>
+            </div>
+          {% endif %}
+          {% if customer.occupation %}
+            <div>
+              <dt class="label">职业</dt>
+              <dd class="text-body-sm text-slate-900">{{ customer.occupation }}</dd>
+            </div>
+          {% endif %}
+          {% if customer.age_note %}
+            <div>
+              <dt class="label">年龄说明</dt>
+              <dd class="text-body-sm text-slate-900">{{ customer.age_note }}</dd>
+            </div>
+          {% endif %}
+          <div>
+            <dt class="label">优先级</dt>
+            <dd class="text-body-sm text-slate-900">{{ customer.get_priority_display }}</dd>
+          </div>
+        </dl>
+      </section>
+
+      {# 在处理什么：未完成待办 / 进行中保单 / 理赔中案件 #}
+      <section class="card">
+        <h2 class="mb-3 text-body-sm font-semibold uppercase tracking-wide text-slate-400">在处理什么</h2>
+        <div class="space-y-3">
+          <div>
+            <div class="mb-1 flex items-center justify-between">
+              <span class="text-body-sm font-medium text-slate-600">未完成待办</span>
+              {% if open_tasks_count %}<span class="badge badge-neutral">{{ open_tasks_count }}</span>{% endif %}
+            </div>
+            {% if open_tasks %}
+              <ul class="space-y-1">
+                {% for task in open_tasks %}
+                  <li class="flex items-center justify-between gap-2 rounded-lg bg-slate-50 px-2.5 py-2">
+                    <span class="min-w-0 truncate text-body-sm text-slate-900">{{ task.title }}</span>
+                    <span class="shrink-0 text-body-sm text-slate-400">{{ task.due_date|date:"m-d" }}</span>
+                  </li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <p class="text-body-sm text-slate-400">暂无未完成待办</p>
+            {% endif %}
+          </div>
+          <div>
+            <div class="mb-1 flex items-center justify-between">
+              <span class="text-body-sm font-medium text-slate-600">进行中保单</span>
+              {% if active_policies_count %}<span class="badge badge-neutral">{{ active_policies_count }}</span>{% endif %}
+            </div>
+            {% if active_policies %}
+              <ul class="space-y-1">
+                {% for policy in active_policies %}
+                  <li class="flex items-center justify-between gap-2 rounded-lg bg-slate-50 px-2.5 py-2">
+                    <span class="min-w-0 truncate text-body-sm text-slate-900">{{ policy.name }}</span>
+                    <span class="shrink-0 text-body-sm text-slate-400">{{ policy.get_status_display }}</span>
+                  </li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <p class="text-body-sm text-slate-400">暂无进行中保单</p>
+            {% endif %}
+          </div>
+          <div>
+            <div class="mb-1 flex items-center justify-between">
+              <span class="text-body-sm font-medium text-slate-600">理赔中案件</span>
+              {% if open_claims_count %}<span class="badge badge-neutral">{{ open_claims_count }}</span>{% endif %}
+            </div>
+            {% if open_claims %}
+              <ul class="space-y-1">
+                {% for claim in open_claims %}
+                  <li class="flex items-center justify-between gap-2 rounded-lg bg-slate-50 px-2.5 py-2">
+                    <span class="min-w-0 truncate text-body-sm text-slate-900">{{ claim.name }}</span>
+                    <span class="shrink-0 text-body-sm text-slate-400">{{ claim.get_status_display }}</span>
+                  </li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <p class="text-body-sm text-slate-400">暂无理赔中案件</p>
+            {% endif %}
+          </div>
+        </div>
+      </section>
+
+      {# 上次发生什么：最近 5 条时间线 #}
+      <section class="card">
+        <h2 class="mb-3 text-body-sm font-semibold uppercase tracking-wide text-slate-400">上次发生什么</h2>
+        {% if timeline_entries %}
+          <ul class="space-y-2.5">
+            {% for entry in timeline_entries %}
+              <li class="flex items-start gap-2.5">
+                <span class="badge {{ entry.badge_class }} shrink-0">{{ entry.label }}</span>
+                <div class="min-w-0 flex-1">
+                  <p class="truncate text-body-sm font-medium text-slate-900">{{ entry.title }}</p>
+                  {% if entry.summary %}<p class="truncate text-body-sm text-slate-500">{{ entry.summary }}</p>{% endif %}
+                  <p class="text-xs text-slate-400">{{ entry.occurred_at|date:"m-d H:i" }}</p>
+                </div>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="text-body-sm text-slate-400">暂无动态记录</p>
+        {% endif %}
+      </section>
+
+      {# 下一步做什么：下次跟进醒目卡 + 最近待办 #}
+      <section class="card">
+        <h2 class="mb-3 text-body-sm font-semibold uppercase tracking-wide text-slate-400">下一步做什么</h2>
+        {% if customer.next_followup_date %}
+          <div class="rounded-xl bg-brand-50 p-4 ring-1 ring-inset ring-brand-200">
+            <p class="text-2xl font-bold tracking-tight text-brand-800">{{ customer.next_followup_date|date:"m月d日" }}</p>
+            <p class="mt-1 text-body-sm text-brand-700">计划跟进日</p>
+          </div>
+        {% else %}
+          <p class="text-body-sm text-slate-400">暂无跟进安排</p>
+        {% endif %}
+        {% if open_tasks %}
+          <div class="mt-3">
+            <p class="mb-1 text-body-sm font-medium text-slate-600">最近待办</p>
+            <ul class="space-y-1">
+              {% for task in open_tasks %}
+                <li class="flex items-center justify-between gap-2">
+                  <span class="min-w-0 truncate text-body-sm text-slate-900">{{ task.title }}</span>
+                  <span class="shrink-0 text-body-sm text-slate-400">{{ task.due_date|date:"m-d" }}</span>
+                </li>
+              {% endfor %}
+            </ul>
+          </div>
+        {% endif %}
+      </section>
+    </div>
+
+    {# 桌面中栏（≥1024px）：信息卡 + 时间线 + 占位区块，保持现有三栏布局 #}
+    <div class="hidden space-y-6 lg:block">
+      <section class="card">
+        <h2 class="mb-3 text-body font-semibold text-slate-900">基本信息</h2>
       <dl class="grid grid-cols-1 gap-x-6 gap-y-3 text-body-sm sm:grid-cols-2">
         <div>
           <dt class="label">姓名</dt>
@@ -139,6 +294,7 @@
       <h2 class="text-body font-semibold text-slate-900">保单 · 理赔 · 待办</h2>
       <p class="mt-2 text-body-sm text-slate-500">保单 / 理赔 / 待办 将在后续版本显示。</p>
     </section>
+    </div>
   </div>
 {% endblock %}
 

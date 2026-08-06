@@ -37,7 +37,7 @@ backup_*/
 node_modules/
 
 # ---- Test & QA artifacts (screenshots for README live in docs/screenshots/) ----
-screenshots/
+/screenshots/
 test-results/
 playwright-report/
 .pw-cache/
