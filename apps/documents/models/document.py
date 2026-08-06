@@ -75,6 +75,8 @@ class Document(TimeStampedModel, UUIDModel, SoftDeleteModel):
         ordering = ["-created_at"]
         verbose_name = "文件"
         verbose_name_plural = "文件"
+        # 注意：sha256 不加唯一约束——重复文件分组功能（T6.3）依赖多个活动
+        # 记录共享同一 sha256；并发去重由上传服务经 advisory 锁串行化保障。
 
     def __str__(self) -> str:
         return str(self.original_name)
