@@ -112,3 +112,117 @@
 | 手机端图渲染 | 拒绝 | 用单层列表替代（需求既定，性能/可用性更优） |
 | 全局搜索 pg_trgm 为主 | 采用 | 中文场景 FTS 默认无效 |
 | 裸 SearchVector 搜中文 | 拒绝 | 需 zhparser/pg_jieba 前置 |
+
+---
+
+## 5. Twenty CRM + Django CRM 研究（客户列表/详情/保存视图/关系建模）
+
+> 研究仓库：twentyhq/twenty、MicroPyramid/django-crm、DjangoCRM/django-crm（均浅克隆审计关键源码）
+
+### 5.1 许可证
+
+| 项目 | 许可证 | 说明 |
+|---|---|---|
+| twentyhq/twenty | **AGPL-3.0**（含商业例外：`/* @license Enterprise */` 文件不受 AGPL 约束） | LICENSE 开头明示 "mostly licensed under AGPLv3… with two qualifications" |
+| MicroPyramid/django-crm | **MIT** | API `license.spdx_id = MIT` |
+| DjangoCRM/django-crm | **AGPL-3.0** | LICENSE 文件 |
+
+Twenty 与 DjangoCRM 均为 AGPL——只借鉴设计模式，不复刻代码。
+
+### 5.2 Twenty CRM 结论
+
+- **元数据驱动**：对象与字段本身是数据字典（`objectMetadata` 表，nameSingular/namePlural 唯一约束），列表/详情由元数据生成，无每对象手写页面。
+- **保存视图五件套**：`view` 主表 + 子表族 `view-field`（列）/`view-filter`（筛选）/`view-filter-group`/`view-sort`/`view-group`（看板列）/`view-field-group`；每条筛选 = `{fieldMetadataId, operand(枚举), value(jsonb)}` 三元组。
+- **详情页布局数据驱动**：`page-layout`/`page-layout-tab`/`page-layout-widget` 模块决定记录页 tab 与 widget，标准模板 `standard-page-layout-tabs.template.ts`。
+- **关系建模**：field-metadata 上的 relation 类型（toOne/toMany）+ 对象元数据唯一键，无单独"关系表"。
+
+关键文件：
+`packages/twenty-server/src/engine/metadata-modules/view/entities/view.entity.ts`、`.../view-filter/entities/view-filter.entity.ts`、`.../object-metadata/object-metadata.entity.ts`、`.../page-layout-tab/entities/page-layout-tab.entity.ts`、`.../workspace-manager/twenty-standard-application/constants/standard-page-layout-tabs.template.ts`
+
+**采用**：保存视图 = view 主表 + filter 子表（`{field, operand, value JSONField}`）映射为 Django models；详情页 tab 用配置/常量驱动。**拒绝**：运行时动态建表（TypeORM 模式在 Django 成本极高）与 React/GraphQL 前端。
+
+### 5.3 MicroPyramid/django-crm 结论（MIT）
+
+- **app 按业务域划分**：`backend/{accounts, contacts, leads, opportunity, cases, tasks, invoices, orders, packs, common}`。
+- 每 app 标准布局：`models.py` + `views/`（多视图模块）+ `services.py`/`services/` 包 + `urls.py` + `serializer.py` + `tasks.py`（Celery）+ `swagger_params.py`。
+- **时间线/附件**：`common` 中 `Comment`/`Attachment` 用 `GenericForeignKey(content_type, object_id)` + org 归属校验 + 复合索引 `(content_type, object_id)`。
+- **审计日志**（`common/audit_log.py` 的 `SecurityAuditLog`）：`event_type` 枚举 + user/org FK + `metadata JSONField` + ip/user_agent/request_path/method + `success` 布尔 + 复合索引（如 `(event_type, -created_at)`）。
+- 状态建模：`stage` FK 指向 `LeadStage`（归属 `LeadPipeline`），支持流程化管道。
+
+关键文件：`backend/leads/{models.py, services.py, views/lead_views.py}`、`backend/contacts/models.py`、`backend/common/{models.py, audit_log.py}`
+
+**采用**：app 边界对应业务域；审计日志字段集与索引设计；GenericFK 时间线条目 + 归属校验。**拒绝**：DRF + React 前端（与 HTMX/SSR 栈不符）。
+
+### 5.4 DjangoCRM/django-crm 结论（AGPL-3.0）
+
+- app 较少：`crm / common / tasks / massmail / analytics / voip / chat`。
+- `crm/models/` 是**包**，按实体拆文件：`base_contact.py / contact.py / company.py / deal.py / lead.py / tag.py / payment.py / product.py / request.py / crmemail.py`。
+- 实体用 **mixin 链**：`Contact(BaseCounterparty, BaseContact, Base1)`。
+- **标签** = 独立 `Tag` 模型 + Contact/Deal 上 `ManyToManyField`（`tag.py`）。
+- **状态** = `CharField(choices)` + `get_status_display` + 状态联动逻辑放 save 方法（`payment.py`）。
+
+关键文件：`crm/models/{base_contact.py, contact.py, deal.py, tag.py, payment.py}`
+
+**采用**：models/ 包拆分、Tag 独立模型 + M2M、状态 choices + 模型方法。**拒绝**：无服务层（逻辑堆 model+signals，作反例）；无独立 Timeline 模型（时间线建模取 mp-crm 的 GenericFK 模式）。
+
+---
+
+## 6. Paperless-ngx 文档管理研究（存储/去重/标签/权限/回收站/备份）
+
+> 研究仓库：paperless-ngx/paperless-ngx（master @ commit `71e2f86`，GPL-3.0）
+
+### 6.1 文件存储与元数据分离
+
+- 磁盘目录三区分离：`MEDIA_ROOT/{documents/originals, documents/archive, documents/thumbnails}`；DB 不存路径模板，只存唯一 `filename`/`archive_filename` + 非唯一 `original_filename`（保留上传原名）。文件名由模板 + 冲突后缀生成，不用 checksum 作文件名。
+- 证据：`src/paperless/settings/__init__.py#L69-L72`；`src/documents/models.py#L265-L293`；`src/documents/file_handling.py#L44-L97`
+
+**采用**：原图/缩略图分离目录 + DB 存唯一存储键 + 单独保留原始文件名。**拒绝**：模板化命名（Keji 对象关联复杂，文件名需稳定）。
+
+### 6.2 重复检测
+
+- 精确重复 = SHA-256 checksum（`compute_checksum` 分块读，db_index），入库前 `Q(checksum=X) | Q(archive_checksum=X)` 查询，区分"回收站中的重复"。无内置相似度检测。
+- 证据：`src/documents/utils.py#L189-L194`；`src/documents/consumer.py#L976-L1025`
+
+**采用**：入库前 SHA-256 去重 + 唯一约束；sanity 复查防静默损坏。
+
+### 6.3 标签/类型建模
+
+- `Correspondent`/`DocumentType`/`StoragePath` 均为 `MatchingModel`（name + match + algorithm，可选 owner）；`Tag(MatchingModel, TreeNodeModel)` 支持**层级标签**（treenode 包，最大深度 5，防环）；文档用 `tags = M2M`，可空 FK + `SET_NULL`。命名唯一约束 `(name, owner)`。
+- 证据：`src/documents/models.py#L46-L155`
+
+**采用**：层级标签（深度≤5）+ 可空 FK + SET_NULL；**简化**：去掉匹配算法字段（Keji 不需自动归类）。
+
+### 6.4 用户权限
+
+- **django-guardian 对象级权限**：`PaperlessObjectPermissions(DjangoObjectPermissions)` 覆写 `has_object_permission`——有 owner 的对象 → 本人直接放行，否则查 guardian；无 owner → 全员可见。视图层 `get_objects_for_user_owner_aware` 过滤。
+- 证据：`src/documents/permissions.py#L36-L61`、`#L334-L353`
+
+**采用**：owner 快捷通道 + 对象权限模式。**实现取舍**：Keji 为单管理员/普通用户小规模，采用手写权限位（见 ADR-004），结构上保留 owner 归属字段。
+
+### 6.5 删除/回收站/审计
+
+- `Document(SoftDeleteModel)` 软删除（django_softdelete）；物理文件删除信号里移入 `EMPTY_TRASH_DIR`（冲突后缀）；定时任务 `empty_trash` 按 `PAPERLESS_EMPTY_TRASH_DELAY`（默认 30 天）硬删 + 清理审计日志。审计用 django-auditlog 中间件。
+- 证据：`src/documents/models.py#L157`；`src/documents/tasks.py#L460-L487`；`src/documents/signals/handlers.py#L343-L355`；`src/paperless/settings/__init__.py#L1033-L1036`
+
+**采用**：软删除 + 延迟硬删 + 审计全量方案（Keji 自建 audit app，见 ADR 决策；不引入 django-auditlog 依赖）。
+
+### 6.6 备份/恢复
+
+- **双轨制**：① `document_exporter` 管理命令导出文件+缩略图+`manifest.json`（全量元数据/标签/审计，JSON 流式分批，支持增量/zip/加密）；② 官方文档要求**另做 PostgreSQL 备份**（pg_dump），因 exporter 不含运行时数据。
+- 证据：`docs/administration.md#L277-L320`；`src/documents/management/commands/document_exporter.py#L360-L430`
+
+**采用**：双轨制（文件 manifest 导出 + pg_dump）；**简化**：第一版不做增量与加密，但保留 manifest + checksum。
+
+### 6.7 总建议
+
+| 决策点 | Keji 方案 |
+|---|---|
+| 存储 | `{originals, thumbnails, trash}/` 三区，DB 存唯一存储键 + 原名 |
+| 去重 | SHA-256 checksum + db_index，入库前校验 |
+| 标签 | 层级树（≤5 层），可空 FK + SET_NULL |
+| 权限 | 手写权限位 + owner 归属（小规模，见 ADR-004） |
+| 删除 | SoftDelete + 延迟清理 + 自建 audit |
+| 备份 | manifest 导出 + pg_dump 双轨 |
+
+**结构分歧点**：Paperless 的 Document 直接挂 checksum（单文件文档系统）；Keji 一份文件对象关联多实体（客户/相册/工作事件/保单/理赔/材料项）——checksum 放文件实体本身，关联走 M2M/中间表，服务端只存一份原始文件。
+
