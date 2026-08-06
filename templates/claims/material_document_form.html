@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}关联文件 — {{ material.name }}{% endblock %}
+
+{% block content %}
+  <div class="mx-auto max-w-2xl">
+    <div class="mb-6">
+      <a href="{% url 'claims:claim_detail' claim.pk %}" class="text-body-sm text-slate-500 hover:text-slate-700">← 返回理赔案件</a>
+      <h1 class="mt-2 text-xl font-semibold tracking-tight text-slate-900">关联文件 — {{ material.name }}</h1>
+      <p class="mt-1 text-body-sm text-slate-500">案件：{{ claim.name }}（{{ claim.get_status_display }}）</p>
+    </div>
+
+    {% if current_document %}
+      <div class="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-3.5 py-2.5 text-body-sm text-emerald-800">
+        已关联文件：
+        <a href="{% url 'claims:material_download' claim.pk material.pk %}" class="underline">{{ current_document.original_name }}</a>
+        {% if current_document.title %}（{{ current_document.title }}）{% endif %}
+      </div>
+    {% endif %}
+
+    <section class="card space-y-6 p-5">
+      <div>
+        <h2 class="mb-3 text-body font-semibold text-slate-900">选择已有文件</h2>
+        <form method="post" class="space-y-4">
+          {% csrf_token %}
+          <div>
+            <label for="document" class="label">已有文件</label>
+            <select name="document" id="document" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-body text-slate-900">
+              <option value="">—— 请选择 ——</option>
+              {% for doc in available_documents %}
+                <option value="{{ doc.pk }}" {% if current_document and current_document.pk == doc.pk %}selected{% endif %}>
+                  {{ doc.original_name }}{% if doc.title %}（{{ doc.title }}）{% endif %}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="flex items-center justify-end gap-3">
+            <a href="{% url 'claims:claim_detail' claim.pk %}" class="btn-secondary">取消</a>
+            <button type="submit" class="btn-primary">关联所选文件</button>
+          </div>
+        </form>
+      </div>
+
+      <hr class="border-slate-200">
+
+      <div>
+        <h2 class="mb-3 text-body font-semibold text-slate-900">上传新文件</h2>
+        <form method="post" enctype="multipart/form-data" class="space-y-4">
+          {% csrf_token %}
+          <div>
+            <label for="file" class="label">新文件</label>
+            <input type="file" name="file" id="file" class="block w-full text-body text-slate-900" required>
+          </div>
+          <div class="flex items-center justify-end gap-3">
+            <a href="{% url 'claims:claim_detail' claim.pk %}" class="btn-secondary">取消</a>
+            <button type="submit" class="btn-primary">上传并关联</button>
+          </div>
+        </form>
+      </div>
+    </section>
+  </div>
+{% endblock %}

@@ -8,11 +8,14 @@
 {% endcomment %}
 {% load perm_tags %}
 <div class="card">
-  <div class="flex items-center justify-between">
+  <div class="flex items-center justify-between gap-2">
     <h2 class="text-body-sm font-semibold text-slate-900">关系
       {% if relation_count %}<span class="ml-1 text-slate-400">（{{ relation_count }}）</span>{% endif %}
     </h2>
-    <a href="{% url 'customers:relation_list' customer.pk %}" class="text-body-sm font-medium text-brand-700 hover:text-brand-800">查看全部</a>
+    <div class="flex shrink-0 items-center gap-3">
+      <a href="{% url 'customers:relationship_graph_page' customer.pk %}" class="text-body-sm font-medium text-brand-700 hover:text-brand-800">查看关系图</a>
+      <a href="{% url 'customers:relation_list' customer.pk %}" class="text-body-sm font-medium text-brand-700 hover:text-brand-800">查看全部</a>
+    </div>
   </div>
   {% if recent_relations %}
     <ul class="mt-1 divide-y divide-slate-100">

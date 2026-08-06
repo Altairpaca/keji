@@ -64,4 +64,15 @@ urlpatterns = [
         graph_views.referral_graph_data,
         name="referral_graph",
     ),
+    # 关系图页面（T12.2 / ADR-010：桌面 vis-network 交互图 + 手机单层列表）
+    path(
+        "<uuid:pk>/graph-page/",
+        graph_views.relationship_graph_page,
+        name="relationship_graph_page",
+    ),
+    path(
+        "<uuid:pk>/referral-page/",
+        graph_views.referral_graph_page,
+        name="referral_graph_page",
+    ),
 ]

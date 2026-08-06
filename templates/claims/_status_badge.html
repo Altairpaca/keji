@@ -1,0 +1,36 @@
+{% comment %}
+理赔案件状态徽标：把 14 个案件状态映射到语义组件色（规格 §12）。
+用法：{% include "claims/_status_badge.html" with claim=claim %}
+参数：claim — ClaimCase 实例（取 status 定色、get_status_display 取标签）
+{% endcomment %}
+{% if claim.status == "consultation" %}
+  <span class="badge-neutral" data-testid="claim-status-badge">客户咨询</span>
+{% elif claim.status == "waiting_materials" %}
+  <span class="badge-warning" data-testid="claim-status-badge">等待客户资料</span>
+{% elif claim.status == "collecting_materials" %}
+  <span class="badge-brand" data-testid="claim-status-badge">资料收集中</span>
+{% elif claim.status == "materials_pending_review" %}
+  <span class="badge-cyan" data-testid="claim-status-badge">资料待核对</span>
+{% elif claim.status == "materials_incomplete" %}
+  <span class="badge-danger" data-testid="claim-status-badge">资料不完整</span>
+{% elif claim.status == "reported" %}
+  <span class="badge-brand" data-testid="claim-status-badge">已报案</span>
+{% elif claim.status == "submitted" %}
+  <span class="badge-success" data-testid="claim-status-badge">已提交</span>
+{% elif claim.status == "insurer_reviewing" %}
+  <span class="badge-purple" data-testid="claim-status-badge">保险公司审核中</span>
+{% elif claim.status == "requested_supplement" %}
+  <span class="badge-warning" data-testid="claim-status-badge">要求补充材料</span>
+{% elif claim.status == "approved" %}
+  <span class="badge-success" data-testid="claim-status-badge">理赔通过</span>
+{% elif claim.status == "partial_paid" %}
+  <span class="badge-cyan" data-testid="claim-status-badge">部分赔付</span>
+{% elif claim.status == "rejected" %}
+  <span class="badge-danger" data-testid="claim-status-badge">拒赔</span>
+{% elif claim.status == "disputing" %}
+  <span class="badge-warning" data-testid="claim-status-badge">客户申诉</span>
+{% elif claim.status == "closed" %}
+  <span class="badge-neutral" data-testid="claim-status-badge">已结案</span>
+{% else %}
+  <span class="badge-neutral" data-testid="claim-status-badge">未知状态</span>
+{% endif %}

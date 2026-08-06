@@ -3,6 +3,75 @@
 {% block title %}首页 — 客迹 Keji{% endblock %}
 
 {% block content %}
-  <h1 class="mb-4 text-xl font-semibold tracking-tight text-slate-900">工作队列</h1>
-  {% include "components/empty_state.html" with icon="calendar" title="今天要处理的事会显示在这里" description="待办跟进、近期到期、待处理理赔会汇总到这里（T9.2 实现）" %}
+  <div class="mb-4 flex items-center justify-between gap-3">
+    <h1 class="text-xl font-semibold tracking-tight text-slate-900">工作队列</h1>
+    {% if restricted %}
+      <span class="badge badge-neutral">受限视图：仅可查看</span>
+    {% endif %}
+  </div>
+
+  {# 统计卡：6 项 #}
+  <section class="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
+    <div class="card">
+      <p class="text-body-sm text-slate-500">客户总数</p>
+      <p class="mt-1 text-xl font-semibold tracking-tight text-slate-900">{{ stats.total_customers }}</p>
+    </div>
+    <div class="card">
+      <p class="text-body-sm text-slate-500">本月新增客户</p>
+      <p class="mt-1 text-xl font-semibold tracking-tight text-slate-900">{{ stats.new_customers_month }}</p>
+    </div>
+    <div class="card">
+      <p class="text-body-sm text-slate-500">本月联系客户</p>
+      <p class="mt-1 text-xl font-semibold tracking-tight text-slate-900">{{ stats.contacted_month }}</p>
+    </div>
+    <div class="card">
+      <p class="text-body-sm text-slate-500">理赔处理中</p>
+      <p class="mt-1 text-xl font-semibold tracking-tight text-slate-900">{{ stats.claims_active }}</p>
+    </div>
+    <div class="card">
+      <p class="text-body-sm text-slate-500">保单待核实</p>
+      <p class="mt-1 text-xl font-semibold tracking-tight text-slate-900">{{ stats.policies_pending }}</p>
+    </div>
+    <div class="card">
+      <p class="text-body-sm text-slate-500">逾期任务</p>
+      <p class="mt-1 text-xl font-semibold tracking-tight text-slate-900">{{ stats.overdue_tasks }}</p>
+    </div>
+  </section>
+
+  {# 队列网格：手机单列，桌面三列 #}
+  <section class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+    {% for key, q in queue.items %}
+      <article class="card flex flex-col" data-testid="queue-{{ key }}">
+        <div class="mb-2.5 flex items-center justify-between gap-2">
+          <h2 class="text-body font-semibold tracking-tight text-slate-900">{{ q.title }}</h2>
+          {% if q.badge %}
+            <span class="badge badge-warning">{{ q.badge }}</span>
+          {% else %}
+            <span class="badge {% if q.count %}badge-brand{% else %}badge-neutral{% endif %}">{{ q.count }}</span>
+          {% endif %}
+        </div>
+
+        {% if q.items %}
+          <ul class="space-y-1.5">
+            {% for item in q.items %}
+              <li>
+                <a href="{{ item.link }}" class="group flex items-center gap-2 rounded-lg px-1 py-0.5 text-body-sm text-slate-700 transition-colors hover:bg-slate-50 hover:text-brand-700">
+                  <span class="min-w-0 flex-1 truncate">{{ item.title }}</span>
+                  {% if item.urgency == "high" %}
+                    <span class="badge badge-danger shrink-0">紧急</span>
+                  {% elif item.urgency == "medium" %}
+                    <span class="badge badge-warning shrink-0">关注</span>
+                  {% endif %}
+                </a>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="py-1 text-body-sm text-slate-400">无待处理</p>
+        {% endif %}
+
+        <a href="{{ q.link }}" class="mt-3 text-body-sm font-medium text-brand-700 transition-colors hover:text-brand-800">查看全部 →</a>
+      </article>
+    {% endfor %}
+  </section>
 {% endblock %}

@@ -25,6 +25,7 @@ urlpatterns = [
         name="work_event_create_for_customer",
     ),
     path("customers/", include("apps.customers.urls")),
+    path("claims/", include("apps.claims.urls")),
     path("policies/", include("apps.policies.urls")),
     path("tasks/", include("apps.tasks.urls")),
 ]
