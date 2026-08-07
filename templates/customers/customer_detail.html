@@ -288,7 +288,39 @@
 
     <section class="card">
       <h2 class="text-body font-semibold text-slate-900">保单 · 理赔 · 待办</h2>
-      <p class="mt-2 text-body-sm text-slate-500">保单 / 理赔 / 待办 将在后续版本显示。</p>
+      <div class="mt-3 space-y-2 text-body-sm">
+        {% if customer.held_policies.all %}
+          <p>
+            保单：
+            {% for policy in customer.held_policies.all|slice:":3" %}
+              <a href="{% url 'policies:policy_detail' pk=policy.pk %}" class="text-brand-700">{{ policy.name }}</a>{% if not forloop.last %}、{% endif %}
+            {% endfor %}
+            {% if customer.held_policies.count > 3 %}等 {{ customer.held_policies.count }} 份{% endif %}
+          </p>
+        {% else %}
+          <p class="text-slate-500">暂无保单</p>
+        {% endif %}
+        {% if customer.claims.all %}
+          <p>
+            理赔：
+            {% for claim in customer.claims.all|slice:":3" %}
+              <a href="{% url 'claims:claim_detail' pk=claim.pk %}" class="text-brand-700">{{ claim.name }}</a>{% if not forloop.last %}、{% endif %}
+            {% endfor %}
+          </p>
+        {% else %}
+          <p class="text-slate-500">暂无理赔</p>
+        {% endif %}
+        {% if customer.tasks.all %}
+          <p>
+            待办：
+            {% for task in customer.tasks.all|slice:":3" %}
+              <a href="{% url 'tasks:task_list' %}" class="text-brand-700">{{ task.title }}</a>{% if not forloop.last %}、{% endif %}
+            {% endfor %}
+          </p>
+        {% else %}
+          <p class="text-slate-500">暂无待办</p>
+        {% endif %}
+      </div>
     </section>
     </div>
   </div>
