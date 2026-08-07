@@ -146,10 +146,15 @@
       </div>
     </section>
 
-    {# 关联文件占位（T7.4 填） #}
+    {# 关联文件：T7.4 已实现 policy_document_list #}
     <section class="card">
       <h2 class="mb-3 text-body font-semibold text-slate-900">保单文件</h2>
-      <p class="text-body-sm text-slate-500">保单相关文件将在后续版本显示（T7.4）。</p>
+      <p class="text-body-sm text-slate-500">保单相关的证件、合同与缴费凭证统一在此归档。</p>
+      <a
+        href="{% url 'policies:policy_document_list' pk=policy.pk %}"
+        class="btn-secondary btn-sm mt-3"
+        >查看文件</a
+      >
     </section>
   </div>
 {% endblock %}

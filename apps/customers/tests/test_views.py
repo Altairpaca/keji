@@ -303,16 +303,19 @@ def test_detail_renders_key_fields(client: Any, viewer: User, make_customer: Mak
         assert fragment in body
 
 
-def test_detail_contains_placeholder_blocks(
+def test_detail_contains_linked_sections(
     client: Any, viewer: User, make_customer: MakeCustomer
 ) -> None:
+    """详情页中栏展示保单 / 理赔 / 待办的关联区块（T4.2 占位已由真实链接替换）。"""
     customer = make_customer("林小明")
     client.force_login(viewer)
 
     response = client.get(f"/customers/{customer.pk}/")
 
     assert response.status_code == 200
-    assert "将在后续版本显示" in _body(response)
+    body = _body(response)
+    assert "保单 · 理赔 · 待办" in body
+    assert "暂无保单" in body
 
 
 def test_detail_mobile_four_blocks(client: Any, manager: User, make_customer: MakeCustomer) -> None:
