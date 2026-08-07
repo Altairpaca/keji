@@ -39,14 +39,14 @@ make runserver           # 前台开发服务器（容器内，端口 8000）
 make seed                # 灌入演示数据（seed_demo --reset）
 make test                # pytest（容器内）
 make lint                # ruff check . && ruff format --check .
-make typecheck           # mypy keji
+make typecheck           # mypy（检查范围见 pyproject.toml 的 files）
 make static              # collectstatic
 make backup / restore    # pg_dump + gzip 备份 / 恢复
 
 # 本地 venv 等价命令
 pytest
 ruff check . && ruff format --check .
-mypy keji
+mypy
 
 # Playwright E2E（浏览器自动化，具体入口 / 标记以 ADR 为准）
 docker compose -f docker/dev/compose.yaml exec web pytest -m e2e

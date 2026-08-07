@@ -49,8 +49,8 @@ test: ## 运行后端测试（pytest-django）
 lint: ## 代码风格检查（ruff check + format 检查）
 	$(COMPOSE) exec web ruff check . && $(COMPOSE) exec web ruff format --check .
 
-typecheck: ## 静态类型检查（mypy）
-	$(COMPOSE) exec web mypy keji
+typecheck: ## 静态类型检查（mypy，检查范围见 pyproject.toml 的 files）
+	$(COMPOSE) exec web mypy
 
 static: ## 收集静态文件（collectstatic）
 	$(COMPOSE) exec web python manage.py collectstatic --noinput
