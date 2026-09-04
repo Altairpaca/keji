@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 430" role="img" aria-labelledby="title desc">
+  <title id="title">Keji private client-work system</title>
+  <desc id="desc">A visual overview of client records, work events, documents, policies, claims, tasks, audit and backup boundaries.</desc>
+  <rect width="1100" height="430" rx="24" fill="#fbfaf6"/>
+  <text x="52" y="48" font-family="Georgia, 'Times New Roman', serif" font-size="27" font-weight="700" fill="#18212b">Keji · private client-work operating system</text>
+  <text x="52" y="74" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif" font-size="14" fill="#66717e">Self-hosted records, workflows, documents, audit history, and recovery for relationship-driven professional work.</text>
+
+  <g font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif">
+    <g>
+      <rect x="54" y="122" width="220" height="76" rx="13" fill="#eef2f5" stroke="#c9d3da"/>
+      <text x="76" y="151" font-size="14" font-weight="700" fill="#234b63">Client graph</text>
+      <text x="76" y="173" font-size="11.5" fill="#62717d">profiles · family / referral links</text>
+      <text x="76" y="189" font-size="11.5" fill="#62717d">deduplication · relationship view</text>
+    </g>
+    <g>
+      <rect x="54" y="222" width="220" height="76" rx="13" fill="#edf3f0" stroke="#cbd8d4"/>
+      <text x="76" y="251" font-size="14" font-weight="700" fill="#3f665e">Work timeline</text>
+      <text x="76" y="273" font-size="11.5" fill="#62716d">meetings · calls · follow-ups</text>
+      <text x="76" y="289" font-size="11.5" fill="#62716d">tasks · reminders · saved views</text>
+    </g>
+    <g>
+      <rect x="54" y="322" width="220" height="76" rx="13" fill="#f5efe7" stroke="#ddcfbd"/>
+      <text x="76" y="351" font-size="14" font-weight="700" fill="#7d5d3a">Files &amp; evidence</text>
+      <text x="76" y="373" font-size="11.5" fill="#74685b">photos · documents · EXIF</text>
+      <text x="76" y="389" font-size="11.5" fill="#74685b">dedupe · retention · export</text>
+    </g>
+
+    <rect x="356" y="128" width="384" height="264" rx="18" fill="#ffffff" stroke="#cfd6db"/>
+    <text x="548" y="162" text-anchor="middle" font-size="17" font-weight="700" fill="#18212b">Auditable domain core</text>
+    <text x="548" y="187" text-anchor="middle" font-size="12" fill="#66717e">one private source of truth for long-running client work</text>
+    <g>
+      <rect x="386" y="214" width="142" height="50" rx="10" fill="#eef2f5" stroke="#d6dde1"/>
+      <text x="457" y="235" text-anchor="middle" font-size="12" font-weight="700" fill="#234b63">Policies</text>
+      <text x="457" y="252" text-anchor="middle" font-size="10.5" fill="#6b7580">status · premiums · history</text>
+      <rect x="568" y="214" width="142" height="50" rx="10" fill="#f5efe7" stroke="#e0d4c4"/>
+      <text x="639" y="235" text-anchor="middle" font-size="12" font-weight="700" fill="#8a6842">Claims</text>
+      <text x="639" y="252" text-anchor="middle" font-size="10.5" fill="#756b60">materials · states · export</text>
+      <rect x="386" y="286" width="142" height="50" rx="10" fill="#edf3f0" stroke="#d6dedb"/>
+      <text x="457" y="307" text-anchor="middle" font-size="12" font-weight="700" fill="#4f746b">Permissions</text>
+      <text x="457" y="324" text-anchor="middle" font-size="10.5" fill="#69746f">role bits · guarded actions</text>
+      <rect x="568" y="286" width="142" height="50" rx="10" fill="#f1f2f4" stroke="#d6d9de"/>
+      <text x="639" y="307" text-anchor="middle" font-size="12" font-weight="700" fill="#5c6672">Audit log</text>
+      <text x="639" y="324" text-anchor="middle" font-size="10.5" fill="#6b727b">who changed what / when</text>
+    </g>
+    <text x="548" y="364" text-anchor="middle" font-size="11.5" fill="#66717e">Django + PostgreSQL · HTMX · PWA · Playwright · Docker</text>
+
+    <g>
+      <rect x="822" y="122" width="224" height="76" rx="13" fill="#fffdf9" stroke="#ddd5c8"/>
+      <text x="844" y="151" font-size="14" font-weight="700" fill="#7d5d3a">Private deployment</text>
+      <text x="844" y="173" font-size="11.5" fill="#74685b">self-hosted · NAS / VPS / Tailnet</text>
+      <text x="844" y="189" font-size="11.5" fill="#74685b">required secrets · non-root services</text>
+    </g>
+    <g>
+      <rect x="822" y="222" width="224" height="76" rx="13" fill="#fffdf9" stroke="#ddd5c8"/>
+      <text x="844" y="251" font-size="14" font-weight="700" fill="#7d5d3a">Backup / restore</text>
+      <text x="844" y="273" font-size="11.5" fill="#74685b">pg_dump + media archive</text>
+      <text x="844" y="289" font-size="11.5" fill="#74685b">manifest · checksum · drill</text>
+    </g>
+    <g>
+      <rect x="822" y="322" width="224" height="76" rx="13" fill="#fffdf9" stroke="#ddd5c8"/>
+      <text x="844" y="351" font-size="14" font-weight="700" fill="#7d5d3a">Real-device workflow</text>
+      <text x="844" y="373" font-size="11.5" fill="#74685b">responsive browser · PWA</text>
+      <text x="844" y="389" font-size="11.5" fill="#74685b">desktop / mobile E2E evidence</text>
+    </g>
+  </g>
+  <g fill="none" stroke="#98a5aa" stroke-width="2" stroke-linecap="round">
+    <path d="M274 160 H356"/><path d="M274 260 H356"/><path d="M274 360 H356"/>
+    <path d="M740 160 H822"/><path d="M740 260 H822"/><path d="M740 360 H822"/>
+  </g>
+</svg>
