@@ -24,7 +24,7 @@ Keji is a private client-work operating system for insurance agents, independent
 
 Python · Django 5.2 · PostgreSQL 17 · HTMX · Alpine.js · Tailwind CSS · Pillow · vis-network · Gunicorn · Nginx · Docker Compose · pytest · Playwright
 
-The full Chinese README contains the feature inventory, deployment runbook, data model, backup/restore process, and documentation index: [README.md](README.md).
+The full Chinese documentation contains the feature inventory, deployment runbook, data model, backup/restore process, and documentation index: [README.zh-CN.md](README.zh-CN.md).
 
 ## Project boundary
 
