@@ -41,11 +41,10 @@ node_modules/
 test-results/
 playwright-report/
 .pw-cache/
+tests/e2e/.auth/
 
 # ---- OS / editor ----
 .DS_Store
 *.swp
 .idea/
 .vscode/
-
-.codegraph
