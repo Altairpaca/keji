@@ -4,7 +4,7 @@
 #   - lint  = ruff check . && ruff format --check .
 #   - types = mypy config apps
 #   - test  = pytest（DJANGO_SETTINGS_MODULE=config.settings.dev，PostgreSQL 17）
-# 数据库凭据用 settings 默认值（keji/keji/keji，端口 5432），与本地开发容器一致。
+# 数据库凭据仅用于隔离的 GitHub Actions PostgreSQL service。
 
 name: CI
 
@@ -13,6 +13,9 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+
+permissions:
+  contents: read
 
 jobs:
   test:
@@ -36,6 +39,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Repository hygiene
+        run: |
+          test -z "$(git ls-files 'tests/e2e/.auth/**')"
+          test -z "$(git ls-files '.omo/**' '.opencode/**' '.codegraph/**')"
 
       - uses: actions/setup-python@v5
         with:
